@@ -1,5 +1,6 @@
 {
-  "include": ["src/single-spa-layout-interface.ts"],
+  "extends": "./tsconfig.base",
+  "include": ["src"],
   "compilerOptions": {
     "lib": [
       "dom",
@@ -10,10 +11,6 @@
       "es2016.array.include",
       "es2018"
     ],
-    "allowJs": true,
-    "declaration": true,
-    "emitDeclarationOnly": true,
-    "esModuleInterop": true,
-    "outDir": "dist/types"
+    "outDir": "dist"
   }
 }
