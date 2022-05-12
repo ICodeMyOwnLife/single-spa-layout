@@ -1,11 +1,3 @@
-// TODO: should use custom or default node types?
-import {
-  ChildNode,
-  CommentNode,
-  DocumentType,
-  Element,
-  TextNode,
-} from "parse5/dist/tree-adapters/default";
 import { ParcelConfig } from "single-spa";
 import { inBrowser } from "../../utils/environment";
 import {
@@ -15,7 +7,9 @@ import {
   InputRouteChild,
   InputUrlRoute,
   InputNode,
-  InputCustomRoute,
+  InputCustomElement,
+  CustomElement,
+  CustomChildNode,
 } from "../types";
 import { getAttribute, nodeNames, hasAttribute, resolvePath } from "../utils";
 
@@ -23,10 +17,10 @@ import { getAttribute, nodeNames, hasAttribute, resolvePath } from "../utils";
 export const MISSING_PROP = typeof Symbol !== "undefined" ? Symbol() : "@";
 
 const getProps = (
-  element: HTMLElement | Element,
+  element: HTMLElement | CustomElement,
   layoutData: HTMLLayoutData
 ) => {
-  const props: Record<string, any> = {};
+  const props: Record<string, unknown> = {};
   (getAttribute(element, "props") || "").split(",").forEach((value) => {
     const propName = value.trim();
     if (propName === "") return;
@@ -44,28 +38,28 @@ const getProps = (
   return props;
 };
 
-type HandledElement = Node | DocumentType | Element | CommentNode | TextNode;
+type HandledElement = Node | CustomChildNode;
 
 const hasNodeName = (element: HandledElement, name: string) =>
   element.nodeName.toLowerCase() === name;
 
-const isApplication = (element: HandledElement): element is Element =>
+const isApplication = (element: HandledElement): element is CustomElement =>
   hasNodeName(element, nodeNames.APPLICATION);
 
-const isRoute = (element: HandledElement): element is Element =>
+const isRoute = (element: HandledElement): element is CustomElement =>
   hasNodeName(element, nodeNames.ROUTE);
 
-const isRedirectElement = (element: HandledElement): element is Element =>
+const isRedirectElement = (element: HandledElement): element is CustomElement =>
   hasNodeName(element, nodeNames.REDIRECT);
 
 const isNode = (element: HandledElement): element is Node =>
   typeof Node !== "undefined" && element instanceof Node;
 
-const isParse5Element = (element: HandledElement): element is Element =>
+const isParse5Element = (element: HandledElement): element is CustomElement =>
   "childNodes" in element;
 
 const getApplicationHandler = (
-  element: Element,
+  element: CustomElement,
   handlers: Record<string, string | ParcelConfig> | undefined,
   handlerName: keyof Application
 ) => {
@@ -80,7 +74,7 @@ const getApplicationHandler = (
 };
 
 const parseApplicationRoutes = (
-  element: Element,
+  element: CustomElement,
   layoutData: HTMLLayoutData
 ): Application[] => {
   if (element.childNodes.length > 0)
@@ -93,13 +87,13 @@ const parseApplicationRoutes = (
       loader: getApplicationHandler(element, layoutData.loaders, "loader"),
       name: getAttribute(element, "name")!,
       props: getProps(element, layoutData),
-      type: "application",
+      type: nodeNames.APPLICATION,
     },
   ];
 };
 
 const parseChildRoutes = (
-  childNodes: ChildNode[],
+  childNodes: CustomChildNode[],
   layoutData: HTMLLayoutData,
   config: InputRoutesConfigObject
 ) => {
@@ -111,7 +105,7 @@ const parseChildRoutes = (
 };
 
 const parseRouteRoutes = (
-  element: Element,
+  element: CustomElement,
   layoutData: HTMLLayoutData,
   config: InputRoutesConfigObject
 ): InputUrlRoute[] => [
@@ -121,7 +115,7 @@ const parseRouteRoutes = (
     path: getAttribute(element, "path") ?? undefined,
     props: getProps(element, layoutData),
     routes: parseChildRoutes(element.childNodes, layoutData, config),
-    type: "route",
+    type: nodeNames.ROUTE,
   },
 ];
 
@@ -145,10 +139,10 @@ const parseNodeRoutes = (
 };
 
 const parseElementRoutes = (
-  element: Element,
+  element: CustomElement,
   layoutData: HTMLLayoutData,
   config: InputRoutesConfigObject
-): InputCustomRoute[] => [
+): InputCustomElement[] => [
   {
     type: element.nodeName.toLowerCase(),
     routes: parseChildRoutes(element.childNodes, layoutData, config),
@@ -172,9 +166,9 @@ export const parseRoutes = (
   if (isNode(element)) return parseNodeRoutes(element, layoutData, config);
   if (isParse5Element(element))
     return parseElementRoutes(element, layoutData, config);
-  if (element.nodeName === "#comment")
-    return [{ type: "#comment", value: element.data }];
-  if (element.nodeName === "#text")
-    return [{ type: "#text", value: element.value }];
+  if (element.nodeName === nodeNames.COMMENT)
+    return [{ type: nodeNames.COMMENT, value: element.data }];
+  if (element.nodeName === nodeNames.TEXT)
+    return [{ type: nodeNames.TEXT, value: element.value }];
   return [];
 };

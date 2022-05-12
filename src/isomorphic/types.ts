@@ -1,17 +1,9 @@
-import type { TreeAdapterTypeMap } from "parse5";
-import type { Attribute } from "parse5/dist/common/token";
-import {
-  CommentNode,
-  Document,
-  DocumentFragment,
-  DocumentType,
-  Element,
-  Template,
-  TextNode,
-} from "parse5/dist/tree-adapters/default";
+import type { DefaultTreeAdapterMap, TreeAdapterTypeMap } from "parse5";
 import type { ParcelConfig } from "single-spa";
+import type { nodeNames } from "./utils";
 
 interface BaseNode {
+  _originalNode?: CustomNode;
   type: string;
 }
 
@@ -19,24 +11,40 @@ interface BaseParentNode {
   routes: CustomChildNode[];
 }
 
-export interface CustomCommentNode extends CommentNode, BaseNode {
-  value: string;
-}
+export type CustomCommentNode = DefaultTreeAdapterMap["commentNode"] &
+  BaseNode & {
+    type: typeof nodeNames.COMMENT;
+    value: string;
+  };
 
-export interface CustomDocument extends Document, BaseNode, BaseParentNode {}
+export type CustomDocument = DefaultTreeAdapterMap["document"] &
+  BaseNode &
+  BaseParentNode;
 
-export interface CustomDocumentFragment
-  extends DocumentFragment,
-    BaseNode,
-    BaseParentNode {}
+export type CustomDocumentFragment = DefaultTreeAdapterMap["documentFragment"] &
+  BaseNode &
+  BaseParentNode;
 
-export interface CustomDocumentType extends DocumentType, BaseNode {}
+export type CustomDocumentType = DefaultTreeAdapterMap["documentType"] &
+  BaseNode;
 
-export interface CustomElement extends Element, BaseNode, BaseParentNode {}
+export type CustomElement = Omit<
+  DefaultTreeAdapterMap["element"],
+  "childNodes"
+> &
+  BaseNode &
+  BaseParentNode & {
+    childNodes: CustomChildNode[];
+  };
 
-export interface CustomTemplate extends Template, BaseNode, BaseParentNode {}
+export type CustomTemplate = DefaultTreeAdapterMap["template"] &
+  BaseNode &
+  BaseParentNode;
 
-export interface CustomTextNode extends TextNode, BaseNode {}
+export type CustomTextNode = DefaultTreeAdapterMap["textNode"] &
+  BaseNode & {
+    type: typeof nodeNames.TEXT;
+  };
 
 export type CustomParentNode =
   | CustomDocument
@@ -66,26 +74,28 @@ export type CustomTreeAdapterMap = TreeAdapterTypeMap<
   CustomDocumentType
 >;
 
-type ContainerEl = string | CustomElement;
+// TODO: sometimes it's HTMLElement, sometimes it's CustomElement, how do I handle it elegantly?
+export type ContainerEl = string | HTMLElement | CustomElement;
 
 type Redirects = Record<string, string>;
 
 export type ActiveWhen = (location: Location | URL) => boolean;
 
+// TODO: Should it be one of CustomNode?
 export interface Application {
   error?: string | ParcelConfig;
   loader?: string | ParcelConfig;
   name: string;
-  props?: Record<string, any>; // TODO: use generic here?
-  type: "application";
+  props?: Record<string, unknown>;
+  type: typeof nodeNames.APPLICATION;
 }
 
 export type ResolvedUrlRoute = {
   activeWhen: ActiveWhen;
   exact?: boolean;
-  props: Record<string, any>; // TODO: use generic here?
+  props: Record<string, unknown>;
   routes: ResolvedRouteChild[];
-  type: "route";
+  type: typeof nodeNames.ROUTE;
 } & (
   | {
       default: boolean;
@@ -97,16 +107,9 @@ export type ResolvedUrlRoute = {
     }
 );
 
-export type CustomRoute = {
-  attrs?: Attribute[];
-  routes: ResolvedRouteChild[];
-  type?: never;
-  [key: string]: unknown;
-};
-
 export type ResolvedRouteChild =
   | ResolvedUrlRoute
-  | CustomRoute
+  | CustomElement
   | Application
   | Node;
 
@@ -129,14 +132,16 @@ export interface InputNode extends Node {
   routes: InputRouteChild[];
 }
 
-export interface InputCustomRoute extends Omit<CustomRoute, "routes" | "type"> {
+export interface InputCustomElement
+  extends Partial<Omit<CustomElement, "routes" | "type">> {
   routes?: InputRouteChild[];
   type: string;
+  value?: string;
 }
 
 export type InputRouteChild =
   | InputUrlRoute
-  | InputCustomRoute
+  | InputCustomElement
   | Application
   | InputNode;
 

@@ -1,14 +1,22 @@
 import { inBrowser } from "../utils/environment";
 import { find } from "../utils/find";
-import { CustomElement } from "./types";
+import {
+  Application,
+  CustomElement,
+  ResolvedRouteChild,
+  ResolvedUrlRoute,
+} from "./types";
 
 export const nodeNames = {
   APPLICATION: "application",
+  ASSETS: "assets",
+  COMMENT: "#comment",
+  FRAGMENT: "fragment",
   REDIRECT: "redirect",
   ROUTE: "route",
   ROUTER: "single-spa-router",
   ROUTER_CONTENT: "ssl-router-content",
-  TEMPLATE: "template",
+  TEXT: "#text",
 } as const;
 
 const isDomElement = (element: Element | CustomElement): element is Element =>
@@ -53,3 +61,12 @@ export function resolvePath(prefix: string, path: string): string {
 
   return result;
 }
+
+export const routeChild = {
+  isApplication: (child: ResolvedRouteChild): child is Application =>
+    "type" in child && child.type === nodeNames.APPLICATION,
+  isNode: (child: ResolvedRouteChild): child is Node =>
+    typeof Node !== "undefined" && child instanceof Node,
+  isUrlRoute: (child: ResolvedRouteChild): child is ResolvedUrlRoute =>
+    "type" in child && child.type === nodeNames.ROUTE,
+};

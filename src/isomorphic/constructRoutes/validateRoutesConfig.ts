@@ -12,7 +12,7 @@ import {
   validateKeys,
 } from "../../utils/validation";
 import { ActiveWhen, ResolvedRouteChild, ResolvedRoutesConfig } from "../types";
-import { resolvePath } from "../utils";
+import { nodeNames, resolvePath } from "../utils";
 
 const defaultRoute =
   (
@@ -140,9 +140,9 @@ function assertRoute(
 ): asserts route is ResolvedRouteChild {
   assertObject(name, route);
 
-  if (route.type === "application")
+  if (route.type === nodeNames.APPLICATION)
     return assertApplication(name, route, disableWarnings);
-  if (route.type === "route")
+  if (route.type === nodeNames.ROUTE)
     return assertUrlRoute(name, route, disableWarnings, {
       parentActiveWhen,
       parentPath,

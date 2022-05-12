@@ -1,5 +1,4 @@
-import { defaultTreeAdapter, TreeAdapter } from "parse5";
-import { NodeType } from "parse5/dist/tree-adapters/default";
+import { defaultTreeAdapter, html, TreeAdapter } from "parse5";
 import {
   CustomCommentNode,
   CustomElement,
@@ -26,18 +25,38 @@ export const treeAdapter: CustomTreeAdapter = {
 
   getTagName: (node) => adapter.getTagName(node) || node.type,
 
+  isApplicationNode: (node): node is CustomElement =>
+    treeAdapter.isElementNode(node) &&
+    treeAdapter.getTagName(node) === nodeNames.APPLICATION,
+
+  isAssetsNode: (node): node is CustomElement =>
+    treeAdapter.isElementNode(node) &&
+    treeAdapter.getTagName(node) === nodeNames.ASSETS,
+
   isCommentNode: (node): node is CustomCommentNode =>
-    adapter.isCommentNode(node) || node.type === NodeType.Comment,
+    adapter.isCommentNode(node) || node.type === nodeNames.COMMENT,
 
   isElementNode: (node): node is CustomElement =>
     adapter.isElementNode(node) || (!!node.type && !node.type.startsWith("#")),
 
+  isFragmentNode: (node): node is CustomElement =>
+    treeAdapter.isElementNode(node) &&
+    treeAdapter.getTagName(node) === nodeNames.FRAGMENT,
+
   isParentNode: (node): node is CustomParentNode =>
     "childNodes" in node || "routes" in node,
 
+  isRouteNode: (node): node is CustomElement =>
+    treeAdapter.isElementNode(node) &&
+    treeAdapter.getTagName(node) === nodeNames.ROUTE,
+
+  isRouterContent: (node): node is CustomElement =>
+    treeAdapter.isElementNode(node) &&
+    treeAdapter.getTagName(node) === nodeNames.ROUTER_CONTENT,
+
   isTemplateNode: (node): node is CustomTemplate =>
-    node.nodeName === nodeNames.TEMPLATE,
+    node.nodeName === html.TAG_NAMES.TEMPLATE,
 
   isTextNode: (node): node is CustomTextNode =>
-    adapter.isTextNode(node) || node.type === NodeType.Text,
+    adapter.isTextNode(node) || node.type === nodeNames.TEXT,
 };

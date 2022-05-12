@@ -4,7 +4,9 @@
     "strict": true,
     "declaration": true,
     "emitDeclarationOnly": true,
+    "isolatedModules": true,
     "esModuleInterop": true,
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "target": "ESNext"
   }
 }

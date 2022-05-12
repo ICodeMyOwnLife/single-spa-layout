@@ -1,3 +1,4 @@
+import { html } from "parse5";
 import { inBrowser } from "../../utils/environment";
 import {
   HTMLLayoutData,
@@ -9,6 +10,8 @@ import {
 import { nodeNames, getAttribute } from "../utils";
 import { parseRoutes } from "./parseRoutes";
 import { validateRoutesConfig } from "./validateRoutesConfig";
+
+export { MISSING_PROP } from "./parseRoutes";
 
 const parseRouterElement = (html: string) => {
   if (!inBrowser)
@@ -34,7 +37,8 @@ const isHTMLElement = (
 
 export const isTemplateElement = (
   element: CustomElement | HTMLElement
-): element is HTMLTemplateElement => element.tagName === nodeNames.TEMPLATE;
+): element is HTMLTemplateElement =>
+  element.tagName === html.TAG_NAMES.TEMPLATE;
 
 const elementToRoutesConfig = (
   element: HTMLElement | CustomElement,

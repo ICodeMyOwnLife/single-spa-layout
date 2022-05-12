@@ -22,7 +22,7 @@
   "types": "dist/types/single-spa-layout-interface.d.ts",
   "scripts": {
     "prepublishOnly": "yarn build",
-    "build": "rimraf dist && concurrently -n w: 'pnpm:build:*'",
+    "build": "rimraf dist && concurrently -n w: 'yarn:build:*'",
     "build:lib": "rollup -c",
     "build:types:browser": "tsc --project tsconfig.json",
     "build:types:server": "tsc --project tsconfig.node.json",
@@ -30,12 +30,11 @@
     "check-format": "prettier --check .",
     "lint": "eslint src",
     "format": "prettier --write .",
-    "test": "concurrently -n w: 'pnpm:test:*'",
+    "test": "concurrently -n w: 'yarn:test:*'",
     "test:browser": "cross-env BABEL_ENV=test jest --testEnvironment=jsdom --testPathIgnorePatterns=test/node-only --testPathIgnorePatterns=cypress",
     "test:node": "cross-env BABEL_ENV=test jest --testEnvironment=node --testPathIgnorePatterns=test/browser-only --testPathIgnorePatterns=cypress",
     "test:types": "tsd",
     "test:exports": "ls-exports path .",
-    "test:lockfile": "js-correct-lockfile pnpm",
     "test-e2e:firefox": "cypress run --browser firefox",
     "test-e2e:chrome": "cypress run --browser chrome"
   },
@@ -99,12 +98,17 @@
     "rimraf": "^3.0.2",
     "rollup": "^2.52.7",
     "rollup-plugin-terser": "^7.0.2",
+    "single-spa": "^6.0.0-beta.1",
+    "ts-node": "10.7.0",
     "tsd": "^0.20.0",
     "typescript": "^4.6.4"
   },
   "dependencies": {
     "merge2": "^1.4.1",
     "parse5": "^7.0.0",
+    "parse5-htmlparser2-tree-adapter": "7.0.0"
+  },
+  "peerDependencies": {
     "single-spa": "^6.0.0-beta.1"
   }
 }

@@ -1,7 +1,11 @@
 import { inBrowser } from "../../utils/environment";
 import { assertString } from "../../utils/validation";
-import { ResolvedRouteChild, ResolvedRoutesConfig } from "../types";
-import { resolvePath } from "../utils";
+import {
+  CustomElement,
+  ResolvedRouteChild,
+  ResolvedRoutesConfig,
+} from "../types";
+import { resolvePath, routeChild } from "../utils";
 
 const recurseRoutes = (
   location: Location | URL,
@@ -10,22 +14,23 @@ const recurseRoutes = (
   const result: ResolvedRouteChild[] = [];
 
   routes.forEach((route) => {
-    if ("type" in route && route.type === "application")
-      return result.push(route);
-    if ("type" in route && route.type === "route") {
-      if (route.activeWhen(location))
+    if (routeChild.isApplication(route)) return result.push(route);
+    if (routeChild.isUrlRoute(route))
+      return (
+        route.activeWhen(location) &&
         result.push({
           ...route,
           routes: recurseRoutes(location, route.routes),
-        });
-      return;
-    }
-    if ("routes" in route && Array.isArray(route.routes)) {
+        })
+      );
+    if ("routes" in route && Array.isArray(route.routes))
       return result.push({
         ...route,
-        routes: recurseRoutes(location, route.routes),
+        routes: recurseRoutes(
+          location,
+          route.routes as CustomElement[]
+        ) as CustomElement[],
       });
-    }
     return result.push(route);
   });
 

@@ -1,14 +1,4 @@
-// TODO: update this
-export interface ParcelProps {
-  domElement: HTMLElement;
-}
-
-// TODO: update this
-export interface ParcelConfig {
-  bootstrap: () => Promise<void>;
-  mount: (props: ParcelProps) => Promise<void>;
-  unmount: (props: ParcelProps) => Promise<void>;
-}
+import { ParcelConfig } from "single-spa";
 
 export const htmlToParcelConfig = (html: string): ParcelConfig => ({
   bootstrap: () => Promise.resolve(),

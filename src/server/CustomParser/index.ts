@@ -1,15 +1,14 @@
 import { html, Parser, Token } from "parse5";
-import { InsertionMode } from "parse5/dist/parser";
-import { CustomTreeAdapterMap } from "../../isomorphic";
+import { CustomTreeAdapterMap, nodeNames } from "../../isomorphic";
 
-// TODO: use custom TreeAdapterMap?
 export class CustomParser extends Parser<CustomTreeAdapterMap> {
   // TODO: what is this doing?
   override _processToken(token: Token.Token): void {
     if (
-      this.insertionMode === InsertionMode.IN_HEAD &&
+      this.insertionMode === /* InsertionMode.IN_HEAD */ 3 &&
       token.type === Token.TokenType.START_TAG &&
-      (token.tagName === "fragment" || token.tagName === "assets")
+      (token.tagName === nodeNames.FRAGMENT ||
+        token.tagName === nodeNames.ASSETS)
     ) {
       this._appendElement(token, html.NS.HTML);
       token.ackSelfClosing = true;

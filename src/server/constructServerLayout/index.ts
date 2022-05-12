@@ -79,7 +79,7 @@ export const constructServerLayout = (
   const containerEl =
     typeof resolvedRoutes.containerEl === "string"
       ? findElement(parsedDocument, resolvedRoutes.containerEl)
-      : resolvedRoutes.containerEl;
+      : (resolvedRoutes.containerEl as CustomElement);
   const routerFragment = treeAdapter.createElement(
     nodeNames.ROUTER_CONTENT,
     html.NS.HTML,
