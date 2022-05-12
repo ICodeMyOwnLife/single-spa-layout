@@ -54,7 +54,7 @@ const serializeApplication: SerializeFunc = ({
     })
   ).then((propEntries) => {
     const props = Object.fromEntries(propEntries);
-    props.name = appName;
+    props["name"] = appName;
     return props;
   });
 
@@ -99,17 +99,14 @@ const serializeAttributes: SerializeFunc = ({ bodyStream, node }) => {
         case NS.XML:
           attrName = `xml:${name}`;
           break;
-
         case NS.XMLNS:
           attrName = name === "xmlns" ? name : `xmlns:${name}`;
           break;
-
         case NS.XLINK:
           attrName = `xlink:${name}`;
-
+          break;
         case undefined:
           break;
-
         default:
           attrName = `${prefix}:${name}`;
           break;
@@ -124,7 +121,7 @@ export const serializeChildNodes: SerializeFunc = (args) => {
   const childNodes = treeAdapter.getChildNodes(parentNode);
   childNodes.forEach((childNode) => {
     const node = childNode._originalNode ?? childNode;
-    let serialize: SerializeFunc | undefined;
+    let serialize: Optional<SerializeFunc>;
 
     switch (true) {
       case !inRouterElement && treeAdapter.isApplicationNode(node):
@@ -283,7 +280,7 @@ const serializeRouterContent: SerializeFunc = (args) => {
     },
   } = args;
   const { routes } = matchRoute(resolvedRoutes, urlPath);
-  // TODO: why assign routes to node
+  // @ts-expect-error TODO: why assign routes to node
   serializeChildNodes({ ...args, node: routes });
   serializeLayoutData(args);
 };

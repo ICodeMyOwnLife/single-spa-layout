@@ -18,7 +18,7 @@ const findApplicationRoute = ({
   applicationName,
   location,
   routes,
-}: FindApplicationRouteInput): Application | undefined => {
+}: FindApplicationRouteInput): Optional<Application> => {
   for (const route of routes) {
     if (routeChild.isApplication(route)) {
       if (route.name === applicationName) return route;
@@ -40,6 +40,7 @@ const findApplicationRoute = ({
       if (result) return result;
     }
   }
+  return undefined;
 };
 
 export const handleError =
@@ -68,7 +69,7 @@ export const handleError =
         { domElement: applicationContainer }
       );
     }
-    if (process.env.BABEL_ENV !== "test")
+    if (process.env["BABEL_ENV"] !== "test")
       setTimeout(() => {
         throw err;
       });

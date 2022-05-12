@@ -51,8 +51,7 @@ const findElementRecursive = (
     ? treeAdapter.getChildNodes(rootNode)
     : [];
 
-  for (let i = 0; i < childNodes.length; ++i) {
-    const childNode = childNodes[i];
+  for (const childNode of childNodes) {
     const result =
       treeAdapter.isElementNode(childNode) &&
       findElementRecursive(childNode, nodeName);

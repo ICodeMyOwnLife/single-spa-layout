@@ -23,14 +23,14 @@ export const getParentContainer = (containerEl: ContainerEl) =>
     : (containerEl as HTMLElement);
 
 export const getPath = (
-  mode: RouteMode | undefined,
+  mode: Optional<RouteMode>,
   location: Location | URL = window.location
 ) => location[mode === "hash" ? "hash" : "pathname"];
 
 export const insertNode = (
   node: Node,
   container: Node,
-  previousSibling: Node | undefined
+  previousSibling: Optional<Node>
 ) => {
   const nextSibling = previousSibling
     ? previousSibling.nextSibling

@@ -7,8 +7,6 @@ import {
 } from "../../isomorphic";
 import { createNodeFromObj } from "./utils";
 
-type PreviousNode = { nextSibling: ChildNode | null } | null | undefined;
-
 const DOM_NODE_NAMES: string[] = [
   nodeNames.APPLICATION,
   nodeNames.ASSETS,
@@ -38,10 +36,7 @@ const shallowEqualNode = (first: Node, second: Node) =>
   first.nodeType === second.nodeType &&
   equalAttributes(first, second);
 
-const nodeEqualsRoute = (
-  node: Node | undefined | null,
-  route: ResolvedRouteChild
-) =>
+const nodeEqualsRoute = (node: Nullable<Node>, route: ResolvedRouteChild) =>
   !node
     ? false
     : shallowEqualNode(
@@ -49,13 +44,15 @@ const nodeEqualsRoute = (
         route instanceof Node ? route : createNodeFromObj(route)
       );
 
+type PreviousNode = Nullable<{ nextSibling: Nullable<ChildNode> }>;
+
 type ExtendedRoute = (Application | CustomElement | Node) & {
-  connectedNode: Node | null | undefined;
+  connectedNode: Nullable<Node>;
 };
 
 export const hydrate = (
-  domNode: Node | null | undefined,
-  routes: ResolvedRouteChild[] | undefined
+  domNode: Nullable<Node>,
+  routes: Optional<ResolvedRouteChild[]>
 ) => {
   if (!domNode?.childNodes || !routes) return;
   let prevNode: PreviousNode = { nextSibling: domNode.childNodes[0] };
@@ -64,7 +61,7 @@ export const hydrate = (
       hydrate(domNode, route.routes);
       return;
     }
-    let node: Node | undefined | null = prevNode?.nextSibling;
+    let node: Nullable<Node> = prevNode?.nextSibling;
     while (
       node?.nodeType === Node.TEXT_NODE &&
       domNode.textContent?.trim() === ""

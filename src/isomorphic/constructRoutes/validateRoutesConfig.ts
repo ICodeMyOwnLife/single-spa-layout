@@ -100,12 +100,12 @@ function assertUrlRoute(
   if (hasPath) {
     assertString(`${name}.path`, value.path);
     fullPath = resolvePath(parentPath, value.path);
-    value.activeWhen = pathToActiveWhen(fullPath, !!value.exact);
-    siblingActiveWhens.push(value.activeWhen as ActiveWhen);
+    value["activeWhen"] = pathToActiveWhen(fullPath, !!value.exact);
+    siblingActiveWhens.push(value["activeWhen"] as ActiveWhen);
   } else if (hasDefault) {
     assertBoolean(`${name}.default`, value.default);
     fullPath = parentPath;
-    value.activeWhen = defaultRoute(siblingActiveWhens, parentActiveWhen);
+    value["activeWhen"] = defaultRoute(siblingActiveWhens, parentActiveWhen);
   } else
     throw Error(
       `Invalid ${name}: routes must have either a path or default property.`
@@ -118,7 +118,7 @@ function assertUrlRoute(
 
   if (value.routes)
     assertChildRoutes(`${name}.routes`, value.routes, disableWarnings, {
-      parentActiveWhen: value.activeWhen as ActiveWhen,
+      parentActiveWhen: value["activeWhen"] as ActiveWhen,
       parentPath: fullPath,
       siblingActiveWhens: [],
     });
@@ -140,9 +140,9 @@ function assertRoute(
 ): asserts route is ResolvedRouteChild {
   assertObject(name, route);
 
-  if (route.type === nodeNames.APPLICATION)
+  if (route["type"] === nodeNames.APPLICATION)
     return assertApplication(name, route, disableWarnings);
-  if (route.type === nodeNames.ROUTE)
+  if (route["type"] === nodeNames.ROUTE)
     return assertUrlRoute(name, route, disableWarnings, {
       parentActiveWhen,
       parentPath,
@@ -156,8 +156,8 @@ function assertRoute(
     if (key !== "routes" && key !== "attrs")
       assertString(`${name}.${key}`, route[key], false);
   }
-  if (route.routes) {
-    assertChildRoutes(`${name}.routes`, route.routes, disableWarnings, {
+  if (route["routes"]) {
+    assertChildRoutes(`${name}.routes`, route["routes"], disableWarnings, {
       parentActiveWhen,
       parentPath,
       siblingActiveWhens,
@@ -170,7 +170,7 @@ export function validateRoutesConfig(
 ): asserts routesConfig is ResolvedRoutesConfig {
   assertObject("routesConfig", routesConfig);
 
-  const disableWarnings = !!routesConfig.disableWarnings;
+  const disableWarnings = !!routesConfig["disableWarnings"];
 
   validateKeys(
     "routesConfig",

@@ -9,7 +9,7 @@ interface AppToRender {
   propsPromise: Promise<Record<string, unknown>>;
 }
 
-interface AppHeaders {
+export interface AppHeaders {
   appHeaders: Record<string, string>;
   appProps: Record<string, unknown>;
 }

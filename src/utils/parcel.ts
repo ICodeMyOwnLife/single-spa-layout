@@ -1,6 +1,10 @@
-import { ParcelConfig } from "single-spa";
+import { ParcelConfig, ParcelProps } from "single-spa";
 
-export const htmlToParcelConfig = (html: string): ParcelConfig => ({
+interface ExtraProps extends ParcelProps {
+  name?: string;
+}
+
+export const htmlToParcelConfig = (html: string): ParcelConfig<ExtraProps> => ({
   bootstrap: () => Promise.resolve(),
   mount: (props) =>
     Promise.resolve().then(() => {

@@ -3,7 +3,7 @@ import { ResolvedRoutesConfig } from "../../isomorphic";
 import { getAppsToUnmount, getPath } from "./utils";
 
 export const executeCancelNavigation = (
-  cancelNavigation: VoidFunction | undefined
+  cancelNavigation: Optional<VoidFunction>
 ) => {
   if (!cancelNavigation)
     throw Error(`single-spa-layout: <redirect> requires single-spa@>=5.7.0`);
@@ -17,7 +17,7 @@ const isRedirected = (
   const path = getPath(mode, new URL(newUrl));
 
   for (const from in redirects) {
-    const to = redirects[from];
+    const to = redirects[from]!;
     if (from === path) {
       // Calling cancelNavigation sends us back to the old URL
       executeCancelNavigation(cancelNavigation);

@@ -26,7 +26,7 @@ const createApplicationElement = (htmlId: string) => {
 const processApplication = (
   { name }: Application,
   { applicationContainers, parentContainer, shouldMount }: DomChangeInput,
-  previousSibling: Node | undefined
+  previousSibling: Optional<Node>
 ) => {
   if (!shouldMount) return previousSibling;
   const htmlId = applicationElementId(name);
@@ -46,7 +46,7 @@ const processUrlRoute = (
     parentContainer,
     shouldMount,
   }: DomChangeInput,
-  previousSibling: Node | undefined
+  previousSibling: Optional<Node>
 ) =>
   recurseRoutes({
     applicationContainers,
@@ -67,7 +67,7 @@ const processNode = (
     parentContainer,
     shouldMount,
   }: DomChangeInput,
-  previousSibling: Node | undefined
+  previousSibling: Optional<Node>
 ) => {
   const extendedNode = node as ExtendedNode;
   if (!shouldMount) {

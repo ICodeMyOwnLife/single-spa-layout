@@ -1,6 +1,6 @@
 import { serializeChildNodes } from "./serializers";
 import { mergeStream } from "./streams";
-import { RenderOptions, SerializeArgs } from "./types";
+import { AppHeaders, RenderOptions, SerializeArgs } from "./types";
 
 const isRedirected = ({
   res,
@@ -43,13 +43,15 @@ const getHeaders = async ({
   renderOptions: { assembleFinalHeaders },
 }: SerializeArgs) => {
   const appHeaders = await Promise.all(
-    Object.keys(headerPromises).map(async (appName) => {
-      const [appHeaders, appProps] = await Promise.all([
-        headerPromises[appName],
-        applicationPropPromises[appName],
-      ]);
-      return { appHeaders, appProps };
-    })
+    Object.entries(headerPromises).map<Promise<AppHeaders>>(
+      async ([appName, headerPromise]) => {
+        const [appHeaders, appProps] = await Promise.all([
+          headerPromise,
+          applicationPropPromises[appName]!,
+        ]);
+        return { appHeaders, appProps };
+      }
+    )
   );
   return assembleFinalHeaders(appHeaders);
 };
@@ -60,8 +62,6 @@ export const sendLayoutHTTPResponse = async (renderOptions: RenderOptions) => {
   const headers = await getHeaders(args);
   const { res } = renderOptions;
   const { bodyStream } = args;
-  for (const headerName in headers) {
-    res.setHeader(headerName, headers[headerName]);
-  }
+  Object.entries(headers).forEach(([key, value]) => res.setHeader(key, value));
   bodyStream.pipe(res);
 };

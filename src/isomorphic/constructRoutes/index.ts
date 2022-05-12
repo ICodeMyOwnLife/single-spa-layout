@@ -28,12 +28,14 @@ const parseRouterElement = (html: string) => {
   return element;
 };
 
-const getHtmlLayoutData = (layoutData: HTMLLayoutData | undefined) =>
+const getHtmlLayoutData = (layoutData: Optional<HTMLLayoutData>) =>
   layoutData || inBrowser ? window.singleSpaLayoutData : undefined;
 
 const isHTMLElement = (
-  element: Element | CustomElement
-): element is HTMLElement => inBrowser;
+  element: HTMLElement | CustomElement
+): element is HTMLElement =>
+  inBrowser ||
+  (typeof HTMLElement !== "undefined" && element instanceof HTMLElement);
 
 export const isTemplateElement = (
   element: CustomElement | HTMLElement
@@ -45,8 +47,7 @@ const elementToRoutesConfig = (
   htmlLayoutData: HTMLLayoutData = {}
 ): InputRoutesConfigObject => {
   const routerElement = isTemplateElement(element)
-    ? // IE11 doesn't support the content property on templates
-      (element.content || element).querySelector(nodeNames.ROUTER)!
+    ? element.content.querySelector<HTMLElement>(nodeNames.ROUTER)!
     : element;
 
   if (routerElement.nodeName.toLowerCase() !== nodeNames.ROUTER)

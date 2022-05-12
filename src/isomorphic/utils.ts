@@ -1,5 +1,4 @@
 import { inBrowser } from "../utils/environment";
-import { find } from "../utils/find";
 import {
   Application,
   CustomElement,
@@ -20,7 +19,7 @@ export const nodeNames = {
 } as const;
 
 const isDomElement = (element: Element | CustomElement): element is Element =>
-  inBrowser;
+  inBrowser || (typeof Element !== "undefined" && element instanceof Element);
 
 export const getAttribute = (
   element: Element | CustomElement,
@@ -29,7 +28,7 @@ export const getAttribute = (
   isDomElement(element)
     ? element.getAttribute(attrName)
     : // watch out, parse5 converts attribute names to lowercase and not as is => https://github.com/inikulin/parse5/issues/116
-      find(element.attrs, (attr) => attr.name === attrName.toLowerCase())
+      element.attrs.find((attr) => attr.name === attrName.toLowerCase())
         ?.value ?? null;
 
 export const hasAttribute = (

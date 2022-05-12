@@ -60,7 +60,7 @@ const isParse5Element = (element: HandledElement): element is CustomElement =>
 
 const getApplicationHandler = (
   element: CustomElement,
-  handlers: Record<string, string | ParcelConfig> | undefined,
+  handlers: Optional<Record<string, string | ParcelConfig>>,
   handlerName: keyof Application
 ) => {
   const handlerKey = getAttribute(element, handlerName);
