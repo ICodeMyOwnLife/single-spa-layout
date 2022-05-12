@@ -37,8 +37,7 @@
     "test:exports": "ls-exports path .",
     "test:lockfile": "js-correct-lockfile pnpm",
     "test-e2e:firefox": "cypress run --browser firefox",
-    "test-e2e:chrome": "cypress run --browser chrome",
-    "prepare": "husky install"
+    "test-e2e:chrome": "cypress run --browser chrome"
   },
   "engines": {
     "node": ">=12"
@@ -89,9 +88,8 @@
     "eslint-config-important-stuff": "^1.1.0",
     "eslint-config-node-important-stuff": "^1.1.0",
     "eslint-plugin-es5": "^1.5.0",
-    "husky": "^7.0.0",
-    "jest": "^27.0.6",
-    "jest-cli": "^27.0.6",
+    "jest": "^28.0.3",
+    "jest-cli": "^28.0.3",
     "jest-serializer-html": "^7.0.0",
     "js-correct-lockfile": "^1.0.0",
     "jsdom": "^16.6.0",
