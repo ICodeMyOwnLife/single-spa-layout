@@ -1,1 +1,9 @@
-export { sendLayoutHTTPResponse } from "./sendLayoutHTTPResponse";
+export {
+  constructServerLayout,
+  type HTMLTemplateOptions,
+  type ServerLayout,
+} from "./constructServerLayout";
+export {
+  type RenderOptions,
+  sendLayoutHTTPResponse,
+} from "./sendLayoutHTTPResponse";

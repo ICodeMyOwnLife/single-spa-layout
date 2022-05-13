@@ -5,6 +5,8 @@ import { placeLoader } from "./placeLoader";
 import { recurseRoutes } from "./recurseRoutes";
 import { ApplicationMap, ApplicationOptions } from "./types";
 
+export * from "./types";
+
 const topLevelActiveWhen: ActiveWhen = () => true;
 
 export const constructApplications = ({

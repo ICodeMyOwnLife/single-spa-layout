@@ -10,6 +10,8 @@ import { hydrate } from "./hydrate";
 import { LayoutEngine, LayoutEngineOptions } from "./types";
 import { getParentContainer } from "./utils";
 
+export * from "./types";
+
 export const constructLayoutEngine = ({
   routes,
   active,

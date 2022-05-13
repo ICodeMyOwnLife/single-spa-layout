@@ -12,6 +12,8 @@ import { CustomParser } from "../CustomParser";
 import { treeAdapter } from "../treeAdapter";
 import { HTMLTemplateOptions, ServerLayout } from "../types";
 
+export * from "../types";
+
 const errPrefix = `single-spa-layout (server):`;
 
 const getHtmlString = (templateOptions: HTMLTemplateOptions) => {

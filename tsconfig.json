@@ -5,6 +5,7 @@
     "lib": ["DOM", "ESNext"],
     "outDir": "dist",
     "declaration": true,
+    "removeComments": true,
     "moduleResolution": "node",
     "isolatedModules": true,
     "esModuleInterop": true,
@@ -20,7 +21,8 @@
     "noPropertyAccessFromIndexSignature": true,
     "allowUnusedLabels": false,
     "allowUnreachableCode": false,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "resolveJsonModule": true
   },
   "include": ["src"]
 }
