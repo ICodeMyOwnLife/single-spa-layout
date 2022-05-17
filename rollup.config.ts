@@ -53,4 +53,5 @@ export default [
   createConfig({ format: "esm", mode: "browser" }),
   createConfig({ format: "system", mode: "browser" }),
   createConfig({ format: "cjs", mode: "server" }),
+  createConfig({ format: "esm", mode: "server" }),
 ];

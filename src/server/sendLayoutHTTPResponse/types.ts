@@ -4,7 +4,7 @@ import { CustomNode } from "../../isomorphic";
 import { ServerLayout } from "../types";
 import { StreamValue } from "./streams";
 
-interface AppToRender {
+export interface AppToRender {
   appName: string;
   propsPromise: Promise<Record<string, unknown>>;
 }
@@ -28,7 +28,7 @@ export interface RenderOptions {
   retrieveApplicationHeaders: (
     appToRender: AppToRender
   ) => Promise<Record<string, string>>;
-  retrieveProp: (name: string) => Promise<unknown>;
+  retrieveProp: (name: string) => unknown | Promise<unknown>;
   serverLayout: ServerLayout;
   urlPath: string;
 }

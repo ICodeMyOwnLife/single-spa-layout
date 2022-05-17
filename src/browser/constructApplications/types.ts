@@ -1,8 +1,12 @@
-import { AppProps, LifeCycles, ParcelConfig } from "single-spa";
+import { LifeCycles, ParcelConfig } from "single-spa";
 import { ActiveWhen, ResolvedRoutesConfig } from "../../isomorphic";
 
+interface LoadAppProps {
+  name: string;
+}
+
 export interface ApplicationOptions {
-  loadApp: (config: Partial<AppProps>) => Promise<LifeCycles>;
+  loadApp: (config: LoadAppProps) => Promise<LifeCycles>;
   routes: ResolvedRoutesConfig;
 }
 

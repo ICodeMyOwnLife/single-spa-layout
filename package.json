@@ -2,24 +2,30 @@
   "name": "@codecb/single-spa-layout",
   "version": "2.0.1",
   "description": "Layout engine for single-spa applications",
-  "main": "dist/umd/single-spa-layout.min.cjs",
-  "module": "dist/esm/single-spa-layout.min.js",
   "type": "module",
   "exports": {
     "./browser": {
-      "default": {
-        "import": "./dist/esm/browser.js"
-      }
+      "import": "./dist/esm/browser.js"
     },
     "./server": {
-      "node": {
-        "require": "./dist/cjs/server.js"
-      }
+      "import": "./dist/esm/server.js",
+      "require": "./dist/cjs/server.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "browser": [
+        "./dist/esm/browser.d.ts"
+      ],
+      "server": [
+        "./dist/esm/server.d.ts",
+        "./dist/cjs/server.d.ts"
+      ]
     }
   },
   "scripts": {
     "prepublishOnly": "yarn build",
-    "build": "rollup -c --configPlugin rollup-plugin-ts",
+    "build": "rollup -c rollup.config.ts --configPlugin rollup-plugin-ts",
     "watch-build": "yarn build -w --environment DEVELOPMENT",
     "check-format": "prettier --check .",
     "lint": "eslint src",
@@ -30,7 +36,8 @@
     "test:types": "tsd",
     "test:exports": "ls-exports path .",
     "test-e2e:firefox": "cypress run --browser firefox",
-    "test-e2e:chrome": "cypress run --browser chrome"
+    "test-e2e:chrome": "cypress run --browser chrome",
+    "typecheck": "tsc --noEmit"
   },
   "engines": {
     "node": ">=16"
@@ -75,6 +82,8 @@
     "js-correct-lockfile": "^1.0.0",
     "jsdom": "^19.0.0",
     "ls-exports": "^1.0.2",
+    "parse5": "^7.0.0",
+    "parse5-htmlparser2-tree-adapter": "^7.0.0",
     "prettier": "^2.3.2",
     "pretty-quick": "^3.1.1",
     "rimraf": "^3.0.2",
@@ -86,12 +95,10 @@
     "tsd": "^0.20.0",
     "typescript": "^4.6.4"
   },
-  "dependencies": {
+  "peerDependencies": {
     "merge2": "^1.4.1",
     "parse5": "^7.0.0",
-    "parse5-htmlparser2-tree-adapter": "7.0.0"
-  },
-  "peerDependencies": {
+    "parse5-htmlparser2-tree-adapter": "^7.0.0",
     "single-spa": "^6.0.0-beta.1"
   }
 }

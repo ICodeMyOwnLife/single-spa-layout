@@ -29,7 +29,7 @@ const parseRouterElement = (html: string) => {
 };
 
 const getHtmlLayoutData = (layoutData: Optional<HTMLLayoutData>) =>
-  layoutData || inBrowser ? window.singleSpaLayoutData : undefined;
+  layoutData || (inBrowser ? window.singleSpaLayoutData : undefined);
 
 const isHTMLElement = (
   element: HTMLElement | CustomElement
@@ -41,6 +41,16 @@ export const isTemplateElement = (
   element: CustomElement | HTMLElement
 ): element is HTMLTemplateElement =>
   element.tagName === html.TAG_NAMES.TEMPLATE;
+
+const setIfHasValue = <TName extends string, TValue>(
+  key: TName,
+  value: Nullable<TValue>
+) => (!!value ? ({ [key]: value } as Record<TName, TValue>) : undefined);
+
+const setFromAttribute =
+  <TName extends string>(attrName: TName) =>
+  <TValue extends string>(routerElement: HTMLElement | CustomElement) =>
+    setIfHasValue(attrName, getAttribute(routerElement, attrName) as TValue);
 
 const elementToRoutesConfig = (
   element: HTMLElement | CustomElement,
@@ -63,9 +73,9 @@ const elementToRoutesConfig = (
     routerElement.parentNode?.removeChild(element);
 
   const result: InputRoutesConfigObject = {
-    base: getAttribute(routerElement, "base") ?? undefined,
-    containerEl: getAttribute(routerElement, "containerEl") ?? undefined,
-    mode: (getAttribute(routerElement, "mode") as RouteMode) ?? undefined,
+    ...setFromAttribute("base")(routerElement),
+    ...setFromAttribute("containerEl")(routerElement),
+    ...setFromAttribute("mode")<RouteMode>(routerElement),
     redirects: {},
     routes: [],
   };
@@ -77,14 +87,14 @@ const elementToRoutesConfig = (
 };
 
 export function constructRoutes(
-  htmlOrElement: string | CustomElement,
-  layoutData: HTMLLayoutData
+  htmlOrElement: string | CustomElement | HTMLElement,
+  layoutData?: HTMLLayoutData
 ): ResolvedRoutesConfig;
 export function constructRoutes(
   configObject: InputRoutesConfigObject
 ): ResolvedRoutesConfig;
 export function constructRoutes(
-  arg1: string | CustomElement | InputRoutesConfigObject,
+  arg1: string | CustomElement | HTMLElement | InputRoutesConfigObject,
   arg2?: HTMLLayoutData
 ): ResolvedRoutesConfig {
   let config: InputRoutesConfigObject;

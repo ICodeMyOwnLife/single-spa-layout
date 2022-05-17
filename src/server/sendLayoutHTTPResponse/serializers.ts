@@ -46,7 +46,7 @@ const serializeApplication: SerializeFunc = ({
       const propValue = propsConfig[propName];
       const value =
         propValue === MISSING_PROP
-          ? (propPromises[propName] ||= retrieveProp(propName))
+          ? (propPromises[propName] ||= Promise.resolve(retrieveProp(propName)))
           : propValue;
       return Promise.resolve(value).then(
         (resolvedValue) => [propName, resolvedValue] as const
