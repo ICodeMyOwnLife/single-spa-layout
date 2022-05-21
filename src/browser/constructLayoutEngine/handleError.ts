@@ -69,7 +69,7 @@ export const handleError =
         { domElement: applicationContainer }
       );
     }
-    if (process.env["BABEL_ENV"] !== "test")
+    if (process.env.BABEL_ENV !== "test")
       setTimeout(() => {
         throw err;
       });

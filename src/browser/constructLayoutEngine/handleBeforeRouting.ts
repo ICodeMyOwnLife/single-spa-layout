@@ -14,6 +14,8 @@ const isRedirected = (
   { mode, redirects }: ResolvedRoutesConfig,
   { newUrl, cancelNavigation }: SingleSpaCustomEventDetail
 ) => {
+  if (!newUrl) return false;
+
   const path = getPath(mode, new URL(newUrl));
 
   for (const from in redirects) {

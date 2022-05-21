@@ -1,87 +1,94 @@
 import { html } from "parse5";
 import { serializeDoctypeContent } from "parse5-htmlparser2-tree-adapter";
-import { matchRoute, MISSING_PROP, nodeNames } from "../../isomorphic";
+import {
+  Application,
+  CustomElement,
+  matchRoute,
+  MISSING_PROP,
+  nodeNames,
+} from "../../isomorphic";
 import { applicationElementId } from "../../utils";
 import { treeAdapter } from "../treeAdapter";
 import { escapeString } from "./escapeString";
 import { logError } from "./logError";
-import { mergeStream, stringStream, valueStream } from "./streams";
-import { RenderResult, SerializeFunc } from "./types";
+import { MergeStream } from "./streams";
+import { AppToRender, SerializeArgs, SerializeFunc } from "./types";
 
 const NS = html.NS;
 const TAGS = html.TAG_NAMES;
 
-const renderResultToAppStreams = (name: string, result: RenderResult) => {
-  const content =
-    typeof result === "object" && "content" in result ? result.content : result;
-  const assets =
-    typeof result === "object" && "assets" in result ? result.assets : "";
-  return {
-    contentStream: valueStream(content, name),
-    assetsStream: valueStream(assets, name),
-  };
-};
-
-const serializeApplication: SerializeFunc = ({
-  applicationPropPromises,
-  assetsStream,
-  bodyStream,
-  headerPromises,
-  node,
-  propPromises,
-  renderOptions: {
-    renderApplication,
-    retrieveApplicationHeaders,
-    retrieveProp,
-  },
-}) => {
-  if (!treeAdapter.isElementNode(node)) return;
-  // TODO: where is name and props from?
-  const { name: appName, props: propsConfig = {} } = node as unknown as {
-    name: string;
-    props?: Record<string, unknown>;
-  };
-  const propsPromise = Promise.all(
-    Object.keys(propsConfig).map((propName) => {
-      const propValue = propsConfig[propName];
+const getPropsPromise = async (
+  { name: appName, props: configProps = {} }: Application,
+  { propPromises, renderOptions: { retrieveProp } }: SerializeArgs
+) => {
+  const propEntries = await Promise.all(
+    Object.keys(configProps).map(async (propName) => {
+      const propValue = configProps[propName];
       const value =
         propValue === MISSING_PROP
           ? (propPromises[propName] ||= Promise.resolve(retrieveProp(propName)))
           : propValue;
-      return Promise.resolve(value).then(
-        (resolvedValue) => [propName, resolvedValue] as const
-      );
+      const resolvedValue = await Promise.resolve(value);
+      return [propName, resolvedValue] as const;
     })
-  ).then((propEntries) => {
-    const props = Object.fromEntries(propEntries);
-    props["name"] = appName;
-    return props;
-  });
+  );
+  const props = Object.fromEntries(propEntries);
+  props["name"] = appName;
+  return props;
+};
 
-  applicationPropPromises[appName] = propsPromise;
-
-  headerPromises[appName] = retrieveApplicationHeaders({
-    appName,
-    propsPromise,
-  });
-
-  const contentStream = mergeStream();
-  const assetStream = mergeStream();
+const getAppStreams = (
+  { appName, propsPromise }: AppToRender,
+  { renderOptions: { renderApplication } }: SerializeArgs
+) => {
+  const contentStream = new MergeStream(`[${appName}-contentStream]`);
+  const assetStream = new MergeStream(`[${appName}-assetStream]`);
   try {
-    const renderResult = renderApplication({ appName, propsPromise });
-    Promise.resolve(renderResult).then((result) => {
-      const streams = renderResultToAppStreams(appName, result);
-      contentStream.add(streams.contentStream);
-      assetStream.add(streams.assetsStream);
-    });
+    const renderResultPromise = Promise.resolve(
+      renderApplication({ appName, propsPromise })
+    );
+    const contentPromise = renderResultPromise.then((result) =>
+      typeof result === "object" && "content" in result
+        ? result.content
+        : result
+    );
+    const assetsPromise = renderResultPromise.then((result) =>
+      typeof result === "object" && "assets" in result ? result.assets : ""
+    );
+    contentStream.add(contentPromise, `[${appName}-content]`);
+    assetStream.add(assetsPromise, `[${appName}-assets]`);
   } catch (error) {
     logError(appName, error);
   }
 
+  return { assetStream, contentStream };
+};
+
+const serializeApplication: SerializeFunc = (args) => {
+  const {
+    assetsStream,
+    bodyStream,
+    applicationPropPromises,
+    headerPromises,
+    node,
+    renderOptions: { retrieveApplicationHeaders },
+  } = args;
+  if (!treeAdapter.isApplicationNode(node)) return;
+  const { name: appName } = node;
+  const propsPromise = getPropsPromise(node, args);
+  applicationPropPromises[appName] = propsPromise;
+  headerPromises[appName] = retrieveApplicationHeaders({
+    appName,
+    propsPromise,
+  });
+  const { assetStream, contentStream } = getAppStreams(
+    { appName, propsPromise },
+    args
+  );
   assetsStream.add(assetStream);
-  bodyStream.add(stringStream(`<div id="${applicationElementId(appName)}">`));
+  bodyStream.add(`<div id="${applicationElementId(appName)}">`);
   bodyStream.add(contentStream);
-  bodyStream.add(stringStream(`</div>`));
+  bodyStream.add(`</div>`);
 };
 
 const serializeAssets: SerializeFunc = ({ assetsStream, bodyStream }) => {
@@ -111,7 +118,7 @@ const serializeAttributes: SerializeFunc = ({ bodyStream, node }) => {
           attrName = `${prefix}:${name}`;
           break;
       }
-      bodyStream.add(stringStream(` ${attrName}="${attrValue}"`));
+      bodyStream.add(` ${attrName}="${attrValue}"`);
     });
 };
 
@@ -174,15 +181,13 @@ export const serializeChildNodes: SerializeFunc = (args) => {
 
 const serializeCommentNode: SerializeFunc = ({ bodyStream, node }) => {
   if (!treeAdapter.isCommentNode(node)) return;
-  bodyStream.add(
-    stringStream(`<!--${treeAdapter.getCommentNodeContent(node)}-->`)
-  );
+  bodyStream.add(`<!--${treeAdapter.getCommentNodeContent(node)}-->`);
 };
 
 const serializeDocumentTypeNode: SerializeFunc = ({ bodyStream, node }) => {
   if (!treeAdapter.isDocumentTypeNode(node)) return;
   const name = treeAdapter.getDocumentTypeNodeName(node);
-  bodyStream.add(stringStream(serializeDoctypeContent(name, "", "")));
+  bodyStream.add(`<${serializeDoctypeContent(name, "", "")}>`);
 };
 
 const SELF_CLOSING_TAGS = [
@@ -210,9 +215,9 @@ const serializeElement: SerializeFunc = (args) => {
   const { bodyStream, inRouterElement, node } = args;
   if (!treeAdapter.isElementNode(node)) return;
   const tn = treeAdapter.getTagName(node);
-  bodyStream.add(stringStream(`<${tn}`));
+  bodyStream.add(`<${tn}`);
   serializeAttributes(args);
-  bodyStream.add(stringStream(`>`));
+  bodyStream.add(`>`);
 
   if (!SELF_CLOSING_TAGS.includes(tn as html.TAG_NAMES)) {
     serializeChildNodes({
@@ -224,7 +229,7 @@ const serializeElement: SerializeFunc = (args) => {
           ? treeAdapter.getTemplateContent(node)
           : node,
     });
-    bodyStream.add(stringStream(`</${tn}>`));
+    bodyStream.add(`</${tn}>`);
   }
 };
 
@@ -240,10 +245,8 @@ const serializeFragment: SerializeFunc = ({
   if (!fragmentName) throw Error("<fragment> has unknown name");
   try {
     bodyStream.add(
-      valueStream(
-        renderOptions.renderFragment(fragmentName),
-        `Fragment ${fragmentName}`
-      )
+      renderOptions.renderFragment(fragmentName),
+      `Fragment ${fragmentName}`
     );
   } catch (error) {
     logError(`Fragment ${fragmentName}`, error);
@@ -266,7 +269,7 @@ const getLayoutData = async (
 
 const serializeLayoutData: SerializeFunc = ({ bodyStream, propPromises }) => {
   try {
-    bodyStream.add(valueStream(getLayoutData(propPromises), "Layout data"));
+    bodyStream.add(getLayoutData(propPromises), "Layout data");
   } catch (error) {
     logError("Serialize layout data", error);
   }
@@ -274,14 +277,18 @@ const serializeLayoutData: SerializeFunc = ({ bodyStream, propPromises }) => {
 
 const serializeRouterContent: SerializeFunc = (args) => {
   const {
+    node,
     renderOptions: {
       serverLayout: { resolvedRoutes },
       urlPath,
     },
   } = args;
   const { routes } = matchRoute(resolvedRoutes, urlPath);
-  // @ts-expect-error TODO: why assign routes to node
-  serializeChildNodes({ ...args, node: routes });
+  serializeChildNodes({
+    ...args,
+    // TODO: use routes: routes?
+    node: { ...node, childNodes: routes as CustomElement[] },
+  });
   serializeLayoutData(args);
 };
 
@@ -305,11 +312,11 @@ const serializeTextNode: SerializeFunc = ({ bodyStream, node }) => {
     case TAGS.STYLE:
     case TAGS.SCRIPT:
     case TAGS.XMP:
-      bodyStream.add(stringStream(content));
+      bodyStream.add(content);
       break;
 
     default:
-      bodyStream.add(stringStream(escapeString(content, false)));
+      bodyStream.add(escapeString(content, false));
       break;
   }
 };

@@ -1,5 +1,5 @@
 import { serializeChildNodes } from "./serializers";
-import { mergeStream } from "./streams";
+import { MergeStream } from "./streams";
 import { AppHeaders, RenderOptions, SerializeArgs } from "./types";
 
 export * from "./types";
@@ -27,8 +27,8 @@ const serializeDocument = (renderOptions: RenderOptions) => {
   } = renderOptions;
   const args: SerializeArgs = {
     applicationPropPromises: {},
-    assetsStream: mergeStream({ pipeError: true }),
-    bodyStream: mergeStream({ pipeError: true }),
+    assetsStream: new MergeStream("assetsStream"),
+    bodyStream: new MergeStream("bodyStream"),
     headerPromises: {},
     inRouterElement: false,
     node: parsedDocument,

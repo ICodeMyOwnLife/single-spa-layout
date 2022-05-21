@@ -1,5 +1,6 @@
 import { defaultTreeAdapter, html, TreeAdapter } from "parse5";
 import {
+  Application,
   CustomCommentNode,
   CustomElement,
   CustomParentNode,
@@ -17,7 +18,7 @@ export const treeAdapter: CustomTreeAdapter = {
   ...adapter,
 
   getChildNodes: (node) =>
-    // TODO: what is node.routes?
+    // TODO: what is node.routes? We don't need to get routes?
     adapter.getChildNodes(node) || node.routes,
 
   getCommentNodeContent: (node) =>
@@ -25,7 +26,7 @@ export const treeAdapter: CustomTreeAdapter = {
 
   getTagName: (node) => adapter.getTagName(node) || node.type,
 
-  isApplicationNode: (node): node is CustomElement =>
+  isApplicationNode: (node): node is CustomElement & Application =>
     treeAdapter.isElementNode(node) &&
     treeAdapter.getTagName(node) === nodeNames.APPLICATION,
 

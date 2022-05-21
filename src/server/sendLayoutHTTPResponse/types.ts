@@ -1,8 +1,7 @@
-import { Merge2Stream } from "merge2";
 import { ServerResponse } from "node:http";
 import { CustomNode } from "../../isomorphic";
 import { ServerLayout } from "../types";
-import { StreamValue } from "./streams";
+import { MergeStream, StreamValue } from "./streams";
 
 export interface AppToRender {
   appName: string;
@@ -35,8 +34,8 @@ export interface RenderOptions {
 
 export interface SerializeArgs {
   applicationPropPromises: Record<string, Promise<Record<string, unknown>>>;
-  assetsStream: Merge2Stream;
-  bodyStream: Merge2Stream;
+  assetsStream: MergeStream;
+  bodyStream: MergeStream;
   headerPromises: Record<string, Promise<Record<string, string>>>;
   inRouterElement: boolean;
   node: CustomNode;

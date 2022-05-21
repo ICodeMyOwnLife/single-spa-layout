@@ -40,7 +40,7 @@ const isHTMLElement = (
 export const isTemplateElement = (
   element: CustomElement | HTMLElement
 ): element is HTMLTemplateElement =>
-  element.tagName === html.TAG_NAMES.TEMPLATE;
+  element.tagName.toLowerCase() === html.TAG_NAMES.TEMPLATE;
 
 const setIfHasValue = <TName extends string, TValue>(
   key: TName,
@@ -70,7 +70,7 @@ const elementToRoutesConfig = (
     isHTMLElement(routerElement) &&
     element.isConnected
   )
-    routerElement.parentNode?.removeChild(element);
+    element.remove();
 
   const result: InputRoutesConfigObject = {
     ...setFromAttribute("base")(routerElement),

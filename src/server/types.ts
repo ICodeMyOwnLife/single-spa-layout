@@ -1,5 +1,6 @@
 import { TreeAdapter } from "parse5";
 import {
+  Application,
   CustomDocument,
   CustomElement,
   CustomNode,
@@ -10,7 +11,7 @@ import {
 } from "../isomorphic";
 
 export interface CustomTreeAdapter extends TreeAdapter<CustomTreeAdapterMap> {
-  isApplicationNode: (node: CustomNode) => node is CustomElement;
+  isApplicationNode: (node: CustomNode) => node is CustomElement & Application;
   isAssetsNode: (node: CustomNode) => node is CustomElement;
   isFragmentNode: (node: CustomNode) => node is CustomElement;
   isParentNode: (node: CustomNode) => node is CustomParentNode;
