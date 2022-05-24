@@ -1,6 +1,6 @@
 {
   "name": "@codecb/single-spa-layout",
-  "version": "2.0.1",
+  "version": "0.0.1",
   "description": "Layout engine for single-spa applications",
   "type": "module",
   "exports": {
