@@ -1,4 +1,4 @@
-import { PassThrough, Readable, TransformCallback } from "node:stream";
+import { Readable } from "node:stream";
 import { isPromise } from "../../utils";
 import { logError } from "./logError";
 
@@ -6,116 +6,98 @@ export type StreamValue = string | Readable;
 
 export type StreamInput = StreamValue | PromiseLike<StreamValue>;
 
-type MergeStreamInput = {
+type MergeStreamItem = {
   name?: string;
-  value: StreamInput;
+  input: StreamInput;
 };
 
-const debugMode = !!process.env["DEBUG"];
-
-export class MergeStream extends PassThrough {
+export class MergeStream extends Readable {
   private ended = false;
   private wholeText = "";
-  private inputs: MergeStreamInput[] = [];
+  private queue: MergeStreamItem[] = [];
   private merging = false;
 
-  constructor(public readonly name: string) {
-    super({ writableObjectMode: true });
+  constructor(public readonly streamName: string) {
+    super();
     process.nextTick(() => this.next());
   }
 
-  override _flush(callback: TransformCallback): void {
-    callback(null);
-  }
-
-  override _transform(
-    chunk: unknown,
-    _encoding: BufferEncoding,
-    callback: TransformCallback
-  ): void {
-    this.add(chunk as StreamInput);
-    callback(null);
-  }
+  override _read(_size: number): void {}
 
   override push(chunk: unknown, _encoding?: BufferEncoding): boolean {
     const text = String(chunk);
-    if (debugMode) {
-      console.log(`MergeStream#${this.name}: push\n${text}`);
+    if (process.env.DEBUG) {
+      console.log(`MergeStream#${this.streamName}: push\n${text}`);
       this.wholeText += text;
     }
     return super.push(text);
   }
 
-  add(value: StreamInput, name?: string) {
+  add(input: StreamInput, name?: string) {
     if (this.ended)
       throw Error(
-        `MergeStream#${this.name} Error: Adding value to already ended stream`
+        `MergeStream#${this.streamName} Error: Adding value to already ended stream`
       );
-    this.inputs.push({ name, value });
+    this.queue.push({ input, name });
     this.next();
     return this;
   }
 
   private endStream() {
-    if (debugMode)
-      console.log(`MergeStream#${this.name}: end\n${this.wholeText}`);
+    if (process.env.DEBUG)
+      console.log(`MergeStream#${this.streamName}: end\n${this.wholeText}`);
     this.ended = true;
     super.push(null);
   }
 
-  private async next(): Promise<void> {
-    if (this.merging) return;
-    const input = this.inputs.shift();
-    if (!input) return this.endStream();
-    if (this.ended)
-      throw Error(
-        `MergeStream#${this.name} Error: Stream ended before drained`
-      );
-    const { name, value } = input;
-    this.merging = true;
-    await this.merge(value, name);
-    this.merging = false;
-    this.next();
+  private merge(input: StreamInput, name: string | undefined): Promise<void> {
+    if (isPromise(input)) return this.mergePromise(input, name);
+    if (input instanceof Readable) return this.mergeReadable(input, name);
+    return this.mergeOther(input);
   }
 
-  private merge(value: StreamInput, name: string | undefined): Promise<void> {
-    if (isPromise(value)) {
-      return this.mergePromise(value, name);
-    }
-    if (value instanceof Readable) {
-      return this.mergeReadable(value, name);
-    }
-    return this.mergeOther(value);
+  private async mergeOther(input: unknown) {
+    this.push(input);
   }
 
   private async mergePromise(
-    value: PromiseLike<StreamValue>,
+    input: PromiseLike<StreamValue>,
     name: string | undefined
   ) {
     try {
-      this.merge(await Promise.resolve(value), name);
+      this.merge(await Promise.resolve(input), name);
     } catch (error) {
-      name && logError(name, error);
+      logError(name || this.streamName, error);
       this.emit("error", error);
     }
   }
 
-  private mergeReadable(value: Readable, name: string | undefined) {
-    // TODO: use pipeline?
+  private mergeReadable(input: Readable, name: string | undefined) {
     return new Promise<void>((resolve) => {
-      value
+      input
         .on("data", (chunk) => {
-          this.merge(chunk, name && `${name}-chunk`);
+          this.merge(chunk, `${name ?? "[Readable]"}-chunk`);
         })
         .on("end", resolve)
         .on("error", (error) => {
-          name && logError(name, error);
+          name && logError(name || this.streamName, error);
           this.emit("error", error);
+          resolve();
         });
     });
   }
 
-  private async mergeOther(value: unknown) {
-    this.push(value);
+  private async next(): Promise<void> {
+    if (this.merging) return;
+    if (this.queue.length === 0) return this.endStream();
+    if (this.ended)
+      throw Error(
+        `MergeStream#${this.streamName} Error: Stream ended before queue was empty`
+      );
+    this.merging = true;
+    const { input, name } = this.queue.shift()!;
+    await this.merge(input, name);
+    this.merging = false;
+    this.next();
   }
 }

@@ -41,6 +41,7 @@ const createConfig = ({
         preventAssignment: true,
         values: {
           "process.env.BABEL_ENV": JSON.stringify("production"),
+          "process.env.DEBUG": JSON.stringify(process.env["DEBUG"]),
         },
       }),
       process.env["DEVELOPMENT"] !== "true" &&

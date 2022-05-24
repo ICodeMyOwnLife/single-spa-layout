@@ -26,3 +26,11 @@ export interface ServerLayout {
 }
 
 export type HTMLTemplateOptions = { filePath: string } | { html: string };
+
+declare global {
+  namespace NodeJS {
+    interface ProcessEnv {
+      DEBUG?: string;
+    }
+  }
+}

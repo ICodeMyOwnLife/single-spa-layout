@@ -26,7 +26,7 @@
   "scripts": {
     "prepublishOnly": "yarn build",
     "build": "rollup -c rollup.config.ts --configPlugin rollup-plugin-ts",
-    "build:watch": "yarn build -w --environment DEVELOPMENT",
+    "build:watch": "DEBUG=true yarn build -w --environment DEVELOPMENT",
     "check-format": "prettier --check .",
     "lint": "eslint src",
     "format": "prettier --write .",
