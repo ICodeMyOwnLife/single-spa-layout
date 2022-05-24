@@ -1,3 +1,12 @@
-// This file exists so that typescript understands the following:
-// import 'single-spa-layout/server'
-export * from "../single-spa-layout-server";
+export {
+  constructServerLayout,
+  type HTMLTemplateOptions,
+  type ServerLayout,
+} from "./constructServerLayout";
+export {
+  type AppHeaders,
+  type AppToRender,
+  type RenderOptions,
+  type RenderResult,
+  sendLayoutHTTPResponse,
+} from "./sendLayoutHTTPResponse";

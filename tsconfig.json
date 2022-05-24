@@ -1,19 +1,28 @@
 {
-  "include": ["src/single-spa-layout-interface.ts"],
   "compilerOptions": {
-    "lib": [
-      "dom",
-      "es5",
-      "scripthost",
-      "es2015",
-      "es2015.promise",
-      "es2016.array.include",
-      "es2018"
-    ],
-    "allowJs": true,
+    "module": "ESNext",
+    "target": "ESNext",
+    "lib": ["DOM", "ESNext"],
+    "outDir": "dist",
     "declaration": true,
-    "emitDeclarationOnly": true,
+    "removeComments": true,
+    "moduleResolution": "node",
+    "isolatedModules": true,
     "esModuleInterop": true,
-    "outDir": "dist/types"
-  }
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "exactOptionalPropertyTypes": false,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "allowUnusedLabels": false,
+    "allowUnreachableCode": false,
+    "skipLibCheck": true,
+    "resolveJsonModule": true
+  },
+  "include": ["src"]
 }
