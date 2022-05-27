@@ -1,6 +1,6 @@
 import { LifeCycles, mountRootParcel, ParcelConfig } from "single-spa";
-import { applicationElementId, htmlToParcelConfig } from "../../utils";
-import { singleSpaEvents } from "../utils";
+import { applicationElementId, htmlToParcelConfig } from "../../utils/index.js";
+import { SingeSpaEvent } from "../utils.js";
 
 const createApplicationElement = (htmlId: string) => {
   const element = document.createElement("div");
@@ -23,15 +23,12 @@ const getOrCreateApplicationElement = (appName: string) => {
         applicationElement.removeAttribute("style");
     }
     window.removeEventListener(
-      singleSpaEvents.BEFORE_MOUNT_ROUTING,
+      SingeSpaEvent.BeforeMountRouting,
       makeElementVisible
     );
   };
 
-  window.addEventListener(
-    singleSpaEvents.BEFORE_MOUNT_ROUTING,
-    makeElementVisible
-  );
+  window.addEventListener(SingeSpaEvent.BeforeMountRouting, makeElementVisible);
   return { applicationElement, makeElementVisible };
 };
 

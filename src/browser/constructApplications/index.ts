@@ -1,11 +1,11 @@
 import { RegisterApplicationConfig } from "single-spa";
-import { ActiveWhen } from "../../isomorphic";
-import { inBrowser } from "../../utils";
-import { placeLoader } from "./placeLoader";
-import { recurseRoutes } from "./recurseRoutes";
-import { ApplicationMap, ApplicationOptions } from "./types";
+import { ActiveWhen } from "../../isomorphic/index.js";
+import { inBrowser } from "../../utils/index.js";
+import { placeLoader } from "./placeLoader.js";
+import { recurseRoutes } from "./recurseRoutes.js";
+import type { ApplicationMap, ApplicationOptions } from "./types.js";
 
-export * from "./types";
+export * from "./types.js";
 
 const topLevelActiveWhen: ActiveWhen = () => true;
 

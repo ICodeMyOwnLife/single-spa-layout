@@ -1,11 +1,10 @@
-import { inBrowser } from "../../utils/environment";
-import { assertString } from "../../utils/validation";
-import {
+import { assertString, inBrowser } from "../../utils/index.js";
+import type {
   CustomElement,
   ResolvedRouteChild,
   ResolvedRoutesConfig,
-} from "../types";
-import { resolvePath, routeChild } from "../utils";
+} from "../types.js";
+import { resolvePath, routeChild } from "../utils.js";
 
 const recurseRoutes = (
   location: Location | URL,

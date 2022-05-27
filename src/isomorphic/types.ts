@@ -1,6 +1,6 @@
 import type { DefaultTreeAdapterMap, TreeAdapterTypeMap } from "parse5";
 import type { ParcelConfig } from "single-spa";
-import type { nodeNames } from "./utils";
+import type { nodeNames } from "./utils.js";
 
 interface BaseNode {
   _originalNode?: CustomNode;

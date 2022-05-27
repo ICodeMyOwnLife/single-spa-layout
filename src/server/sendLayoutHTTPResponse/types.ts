@@ -1,7 +1,7 @@
 import { ServerResponse } from "node:http";
-import { CustomNode } from "../../isomorphic";
-import { ServerLayout } from "../types";
-import { MergeStream, StreamValue } from "./streams";
+import { CustomNode } from "../../isomorphic/index.js";
+import type { ServerLayout } from "../types.js";
+import { MergeStream, StreamValue } from "./streams.js";
 
 export interface AppToRender {
   appName: string;

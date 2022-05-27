@@ -4,8 +4,8 @@ import {
   nodeNames,
   ResolvedRouteChild,
   routeChild,
-} from "../../isomorphic";
-import { createNodeFromObj } from "./utils";
+} from "../../isomorphic/index.js";
+import { createNodeFromObj } from "./utils.js";
 
 const DOM_NODE_NAMES: string[] = [
   nodeNames.APPLICATION,

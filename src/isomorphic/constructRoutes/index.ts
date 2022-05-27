@@ -1,17 +1,17 @@
 import { html } from "parse5";
-import { inBrowser } from "../../utils/environment";
-import {
+import { inBrowser } from "../../utils/index.js";
+import type {
   HTMLLayoutData,
   InputRoutesConfigObject,
   RouteMode,
   ResolvedRoutesConfig,
   CustomElement,
-} from "../types";
-import { nodeNames, getAttribute } from "../utils";
-import { parseRoutes } from "./parseRoutes";
-import { validateRoutesConfig } from "./validateRoutesConfig";
+} from "../types.js";
+import { nodeNames, getAttribute } from "../utils.js";
+import { parseRoutes } from "./parseRoutes.js";
+import { validateRoutesConfig } from "./validateRoutesConfig.js";
 
-export { MISSING_PROP } from "./parseRoutes";
+export { MISSING_PROP } from "./parseRoutes.js";
 
 const parseRouterElement = (html: string) => {
   if (!inBrowser)

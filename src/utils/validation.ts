@@ -1,4 +1,4 @@
-import { inBrowser } from "./environment";
+import { inBrowser } from "./environment.js";
 
 export type PlainObject = Record<PropertyKey, unknown>;
 

@@ -1,11 +1,11 @@
-export const singleSpaEvents = {
-  APP_CHANGE: "single-spa:app-change",
-  BEFORE_APP_CHANGE: "single-spa:before-app-change",
-  BEFORE_FIRST_MOUNT: "single-spa:before-first-mount",
-  BEFORE_MOUNT_ROUTING: "single-spa:before-mount-routing-event",
-  BEFORE_NO_APP_CHANGE: "single-spa:before-no-app-change",
-  BEFORE_ROUTING: "single-spa:before-routing-event",
-  FIRST_MOUNT: "single-spa:first-mount",
-  NO_APP_CHANGE: "single-spa:no-app-change",
-  ROUTING: "single-spa:routing-event",
-} as const;
+export enum SingeSpaEvent {
+  AppChange = "single-spa:app-change",
+  BeforeAppChange = "single-spa:before-app-change",
+  BeforeFirstMount = "single-spa:before-first-mount",
+  BeforeMountRouting = "single-spa:before-mount-routing-event",
+  BeforeNoAppChange = "single-spa:before-no-app-change",
+  BeforeRouting = "single-spa:before-routing-event",
+  FirstMount = "single-spa:first-mount",
+  NoAppChange = "single-spa:no-app-change",
+  Routing = "single-spa:routing-event",
+}

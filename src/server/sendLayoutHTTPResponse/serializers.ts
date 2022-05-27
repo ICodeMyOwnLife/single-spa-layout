@@ -6,13 +6,13 @@ import {
   matchRoute,
   MISSING_PROP,
   nodeNames,
-} from "../../isomorphic";
-import { applicationElementId } from "../../utils";
-import { treeAdapter } from "../treeAdapter";
-import { escapeString } from "./escapeString";
-import { logError } from "./logError";
-import { MergeStream } from "./streams";
-import { AppToRender, SerializeArgs, SerializeFunc } from "./types";
+} from "../../isomorphic/index.js";
+import { applicationElementId } from "../../utils/index.js";
+import { treeAdapter } from "../treeAdapter/index.js";
+import { escapeString } from "./escapeString.js";
+import { logError } from "./logError.js";
+import { MergeStream } from "./streams.js";
+import type { AppToRender, SerializeArgs, SerializeFunc } from "./types.js";
 
 const NS = html.NS;
 const TAGS = html.TAG_NAMES;

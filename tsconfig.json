@@ -1,28 +1,8 @@
 {
+  "extends": "@codecb/tsconfigs/tsconfig.modern-browser-lib",
   "compilerOptions": {
-    "module": "ESNext",
-    "target": "ESNext",
     "lib": ["DOM", "ESNext"],
-    "outDir": "dist",
-    "declaration": true,
-    "removeComments": true,
-    "moduleResolution": "node",
-    "isolatedModules": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "exactOptionalPropertyTypes": false,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUncheckedIndexedAccess": true,
-    "noImplicitOverride": true,
-    "noPropertyAccessFromIndexSignature": true,
-    "allowUnusedLabels": false,
-    "allowUnreachableCode": false,
-    "skipLibCheck": true,
-    "resolveJsonModule": true
+    "outDir": "dist"
   },
   "include": ["src"]
 }

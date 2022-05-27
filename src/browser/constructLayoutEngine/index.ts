@@ -1,16 +1,16 @@
 import { addErrorHandler, Parcel, removeErrorHandler } from "single-spa";
-import { inBrowser } from "../../utils";
-import { singleSpaEvents } from "../utils";
-import { createArrangeDomElements } from "./createArrangeDomElements";
-import { handleBeforeMountRouting } from "./handleBeforeMountRouting";
-import { handleBeforeRouting } from "./handleBeforeRouting";
-import { handleError } from "./handleError";
-import { handleRouting } from "./handleRouting";
-import { hydrate } from "./hydrate";
-import { LayoutEngine, LayoutEngineOptions } from "./types";
-import { getParentContainer } from "./utils";
+import { inBrowser } from "../../utils/index.js";
+import { SingeSpaEvent } from "../utils.js";
+import { createArrangeDomElements } from "./createArrangeDomElements.js";
+import { handleBeforeMountRouting } from "./handleBeforeMountRouting.js";
+import { handleBeforeRouting } from "./handleBeforeRouting.js";
+import { handleError } from "./handleError.js";
+import { handleRouting } from "./handleRouting.js";
+import { hydrate } from "./hydrate.js";
+import type { LayoutEngine, LayoutEngineOptions } from "./types.js";
+import { getParentContainer } from "./utils.js";
 
-export * from "./types";
+export * from "./types.js";
 
 export const constructLayoutEngine = ({
   routes,
@@ -34,14 +34,14 @@ export const constructLayoutEngine = ({
       isActive = true;
       if (!inBrowser) return;
       window.addEventListener(
-        singleSpaEvents.BEFORE_MOUNT_ROUTING,
+        SingeSpaEvent.BeforeMountRouting,
         beforeMountRoutingHandler
       );
       window.addEventListener(
-        singleSpaEvents.BEFORE_ROUTING,
+        SingeSpaEvent.BeforeRouting,
         beforeRoutingHandler
       );
-      window.addEventListener(singleSpaEvents.ROUTING, routingHandler);
+      window.addEventListener(SingeSpaEvent.Routing, routingHandler);
       addErrorHandler(errorHandler);
       wasServerRendered &&
         hydrate(getParentContainer(routes.containerEl), routes.routes);
@@ -52,14 +52,14 @@ export const constructLayoutEngine = ({
       isActive = false;
       if (!inBrowser) return;
       window.removeEventListener(
-        singleSpaEvents.BEFORE_MOUNT_ROUTING,
+        SingeSpaEvent.BeforeMountRouting,
         beforeMountRoutingHandler
       );
       window.removeEventListener(
-        singleSpaEvents.BEFORE_ROUTING,
+        SingeSpaEvent.BeforeRouting,
         beforeRoutingHandler
       );
-      window.removeEventListener(singleSpaEvents.ROUTING, routingHandler);
+      window.removeEventListener(SingeSpaEvent.Routing, routingHandler);
       removeErrorHandler(errorHandler);
     },
     isActive: () => isActive,

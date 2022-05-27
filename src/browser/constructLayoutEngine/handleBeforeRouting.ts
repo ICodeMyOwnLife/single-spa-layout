@@ -1,6 +1,7 @@
 import { navigateToUrl, Parcel, SingleSpaCustomEventDetail } from "single-spa";
-import { ResolvedRoutesConfig } from "../../isomorphic";
-import { getAppsToUnmount, getPath } from "./utils";
+import { ResolvedRoutesConfig } from "../../isomorphic/index.js";
+import { SingleSpaEventListener } from "./types.js";
+import { getAppsToUnmount, getPath } from "./utils.js";
 
 export const executeCancelNavigation = (
   cancelNavigation: Optional<VoidFunction>
@@ -14,6 +15,7 @@ const isRedirected = (
   { mode, redirects }: ResolvedRoutesConfig,
   { newUrl, cancelNavigation }: SingleSpaCustomEventDetail
 ) => {
+  // TODO: debugging shows that `newUrl` is undefined in some cases, is it OK to early return?
   if (!newUrl) return false;
 
   const path = getPath(mode, new URL(newUrl));
@@ -59,9 +61,8 @@ export const handleBeforeRouting =
   (
     routesConfig: ResolvedRoutesConfig,
     errorParcelByAppName: Record<string, Parcel>
-  ): EventListener =>
-  (e) => {
-    const { detail } = e as CustomEvent<SingleSpaCustomEventDetail>;
+  ): SingleSpaEventListener =>
+  ({ detail }) => {
     if (isRedirected(routesConfig, detail)) return;
     if (hasErrors(errorParcelByAppName, detail)) return;
   };

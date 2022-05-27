@@ -8,7 +8,7 @@ import {
   CustomTemplate,
   CustomTreeAdapterMap,
   ResolvedRoutesConfig,
-} from "../isomorphic";
+} from "../isomorphic/index.js";
 
 export interface CustomTreeAdapter extends TreeAdapter<CustomTreeAdapterMap> {
   isApplicationNode: (node: CustomNode) => node is CustomElement & Application;

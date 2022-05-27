@@ -1,13 +1,12 @@
-import { SingleSpaCustomEventDetail } from "single-spa";
-import { applicationElementId } from "../../utils";
-import { getAppsToUnmount } from "./utils";
+import { applicationElementId } from "../../utils/index.js";
+import { SingleSpaEventListener } from "./types.js";
+import { getAppsToUnmount } from "./utils.js";
 
-export const handleRouting = (): EventListener => (e) => {
-  const {
-    detail: { newUrl },
-  } = e as CustomEvent<SingleSpaCustomEventDetail>;
-  getAppsToUnmount(newUrl).forEach((name) => {
-    const appElement = document.getElementById(applicationElementId(name));
-    appElement?.isConnected && appElement.remove();
-  });
-};
+export const handleRouting =
+  (): SingleSpaEventListener =>
+  ({ detail: { newUrl } }) => {
+    getAppsToUnmount(newUrl).forEach((name) => {
+      const appElement = document.getElementById(applicationElementId(name));
+      appElement?.isConnected && appElement.remove();
+    });
+  };

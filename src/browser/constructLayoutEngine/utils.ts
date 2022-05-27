@@ -8,7 +8,7 @@ import {
   nodeNames,
   ResolvedUrlRoute,
   RouteMode,
-} from "../../isomorphic";
+} from "../../isomorphic/index.js";
 
 export const getAppsToUnmount = (newUrl: string) => {
   const activeApps = checkActivityFunctions(

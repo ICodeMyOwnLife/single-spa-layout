@@ -3,8 +3,8 @@ import {
   CustomElement,
   ResolvedRouteChild,
   routeChild,
-} from "../../isomorphic";
-import { ApplicationMap } from "./types";
+} from "../../isomorphic/index.js";
+import type { ApplicationMap } from "./types.js";
 
 export const recurseRoutes = (
   applicationMap: ApplicationMap,

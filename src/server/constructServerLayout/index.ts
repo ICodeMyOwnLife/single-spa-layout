@@ -6,13 +6,13 @@ import {
   CustomNode,
   CustomTreeAdapterMap,
   nodeNames,
-} from "../../isomorphic";
-import { assertString } from "../../utils/validation";
-import { CustomParser } from "../CustomParser";
-import { treeAdapter } from "../treeAdapter";
-import { HTMLTemplateOptions, ServerLayout } from "../types";
+} from "../../isomorphic/index.js";
+import { assertString } from "../../utils/index.js";
+import { CustomParser } from "../CustomParser/index.js";
+import { treeAdapter } from "../treeAdapter/index.js";
+import type { HTMLTemplateOptions, ServerLayout } from "../types.js";
 
-export * from "../types";
+export * from "../types.js";
 
 const errPrefix = `single-spa-layout (server):`;
 

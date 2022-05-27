@@ -1,8 +1,8 @@
-import { serializeChildNodes } from "./serializers";
-import { MergeStream } from "./streams";
-import { AppHeaders, RenderOptions, SerializeArgs } from "./types";
+import { serializeChildNodes } from "./serializers.js";
+import { MergeStream } from "./streams.js";
+import type { AppHeaders, RenderOptions, SerializeArgs } from "./types.js";
 
-export * from "./types";
+export * from "./types.js";
 
 const isRedirected = ({
   res,

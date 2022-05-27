@@ -1,8 +1,8 @@
 import { getMountedApps } from "single-spa";
-import { ResolvedRoutesConfig } from "../../isomorphic";
-import { applicationElementId } from "../../utils";
-import { recurseRoutes } from "./recurseRoutes";
-import { getParentContainer, getPath } from "./utils";
+import { ResolvedRoutesConfig } from "../../isomorphic/index.js";
+import { applicationElementId } from "../../utils/index.js";
+import { recurseRoutes } from "./recurseRoutes.js";
+import { getParentContainer, getPath } from "./utils.js";
 
 export const createArrangeDomElements =
   ({ base, containerEl, mode, routes }: ResolvedRoutesConfig) =>

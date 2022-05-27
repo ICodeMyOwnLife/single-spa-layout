@@ -8,8 +8,8 @@ import {
   CustomTextNode,
   CustomTreeAdapterMap,
   nodeNames,
-} from "../../isomorphic";
-import { CustomTreeAdapter } from "../types";
+} from "../../isomorphic/index.js";
+import type { CustomTreeAdapter } from "../types.js";
 
 const adapter =
   defaultTreeAdapter as unknown as TreeAdapter<CustomTreeAdapterMap>;

@@ -5,8 +5,8 @@ import {
   ResolvedRouteChild,
   ResolvedRoutesConfig,
   routeChild,
-} from "../../isomorphic";
-import { applicationElementId, htmlToParcelConfig } from "../../utils";
+} from "../../isomorphic/index.js";
+import { applicationElementId, htmlToParcelConfig } from "../../utils/index.js";
 
 interface FindApplicationRouteInput {
   applicationName: string;

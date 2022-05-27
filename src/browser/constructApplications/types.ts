@@ -1,5 +1,8 @@
-import { LifeCycles, ParcelConfig } from "single-spa";
-import { ActiveWhen, ResolvedRoutesConfig } from "../../isomorphic";
+import type { LifeCycles, ParcelConfig } from "single-spa";
+import type {
+  ActiveWhen,
+  ResolvedRoutesConfig,
+} from "../../isomorphic/index.js";
 
 interface LoadAppProps {
   name: string;

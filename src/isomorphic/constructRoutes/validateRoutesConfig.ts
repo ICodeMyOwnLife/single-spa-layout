@@ -1,5 +1,4 @@
 import { pathToActiveWhen } from "single-spa";
-import { inBrowser } from "../../utils/environment";
 import {
   assertArrayLike,
   assertBoolean,
@@ -8,11 +7,16 @@ import {
   assertFullPath,
   assertObject,
   assertString,
+  inBrowser,
   PlainObject,
   validateKeys,
-} from "../../utils/validation";
-import { ActiveWhen, ResolvedRouteChild, ResolvedRoutesConfig } from "../types";
-import { nodeNames, resolvePath } from "../utils";
+} from "../../utils/index.js";
+import type {
+  ActiveWhen,
+  ResolvedRouteChild,
+  ResolvedRoutesConfig,
+} from "../types.js";
+import { nodeNames, resolvePath } from "../utils.js";
 
 const defaultRoute =
   (

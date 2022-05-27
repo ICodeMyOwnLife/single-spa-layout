@@ -4,9 +4,9 @@ import {
   ResolvedRouteChild,
   ResolvedUrlRoute,
   routeChild,
-} from "../../isomorphic";
-import { applicationElementId } from "../../utils";
-import { createNodeFromObj, insertNode } from "./utils";
+} from "../../isomorphic/index.js";
+import { applicationElementId } from "../../utils/index.js";
+import { createNodeFromObj, insertNode } from "./utils.js";
 
 export interface DomChangeInput {
   applicationContainers: Record<string, HTMLElement>;

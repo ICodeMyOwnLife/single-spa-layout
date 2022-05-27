@@ -1,5 +1,5 @@
 import { html, Parser, Token } from "parse5";
-import { CustomTreeAdapterMap, nodeNames } from "../../isomorphic";
+import { CustomTreeAdapterMap, nodeNames } from "../../isomorphic/index.js";
 
 export class CustomParser extends Parser<CustomTreeAdapterMap> {
   // TODO: what is this doing?

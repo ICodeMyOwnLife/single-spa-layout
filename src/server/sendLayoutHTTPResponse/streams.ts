@@ -1,6 +1,6 @@
 import { Readable } from "node:stream";
-import { isPromise } from "../../utils";
-import { logError } from "./logError";
+import { isPromise } from "../../utils/index.js";
+import { logError } from "./logError.js";
 
 export type StreamValue = string | Readable;
 

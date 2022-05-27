@@ -1,10 +1,10 @@
-import { inBrowser } from "../utils/environment";
+import { inBrowser } from "../utils/index.js";
 import {
   Application,
   CustomElement,
   ResolvedRouteChild,
   ResolvedUrlRoute,
-} from "./types";
+} from "./types.js";
 
 export const nodeNames = {
   APPLICATION: "application",

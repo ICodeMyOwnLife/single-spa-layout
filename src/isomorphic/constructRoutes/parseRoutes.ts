@@ -1,6 +1,6 @@
 import { ParcelConfig } from "single-spa";
-import { inBrowser } from "../../utils/environment";
-import {
+import { inBrowser } from "../../utils/index.js";
+import type {
   Application,
   HTMLLayoutData,
   InputRoutesConfigObject,
@@ -10,8 +10,13 @@ import {
   InputCustomElement,
   CustomElement,
   CustomChildNode,
-} from "../types";
-import { getAttribute, nodeNames, hasAttribute, resolvePath } from "../utils";
+} from "../types.js";
+import {
+  getAttribute,
+  nodeNames,
+  hasAttribute,
+  resolvePath,
+} from "../utils.js";
 
 // TODO: what is MISSING_PROP for?
 export const MISSING_PROP = typeof Symbol !== "undefined" ? Symbol() : "@";

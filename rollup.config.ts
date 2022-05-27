@@ -7,6 +7,7 @@ import ts from "rollup-plugin-ts";
 import pkg from "./package.json";
 
 const CWD = process.cwd();
+const isDevelopment = process.env["DEVELOPMENT"] === "true";
 
 const createConfig = ({
   format,
@@ -31,11 +32,16 @@ const createConfig = ({
       banner: `/*! ${pkg.name}/${mode}@${pkg.version} - ${format} format */`,
       file: outputFile,
       format,
-      sourcemap: true,
+      sourcemap: isDevelopment,
     },
     external: ["merge2", /^node:*/, /^parse5.*/, "single-spa"],
     plugins: [
-      ts({ tsconfig: resolve(CWD, "tsconfig.json") }),
+      ts({
+        tsconfig: resolve(
+          CWD,
+          isDevelopment ? "tsconfig.dev.json" : "tsconfig.json"
+        ),
+      }),
       babel(babelOpts),
       replace({
         preventAssignment: true,
@@ -44,8 +50,7 @@ const createConfig = ({
           "process.env.DEBUG": JSON.stringify(process.env["DEBUG"]),
         },
       }),
-      process.env["DEVELOPMENT"] !== "true" &&
-        terser({ compress: { passes: 2 } }),
+      !isDevelopment && terser({ compress: { passes: 2 } }),
     ],
   });
 };
