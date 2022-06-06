@@ -1,7 +1,5 @@
 import { inBrowser } from "./environment.js";
 
-export type PlainObject = Record<PropertyKey, unknown>;
-
 class AssertionError extends Error {
   constructor(name: string, expected: unknown, received: unknown) {
     super(`Invalid ${name}: expected ${expected}, but received ${received}`);
@@ -11,7 +9,7 @@ class AssertionError extends Error {
 export function assertObject(
   name: string,
   value: unknown
-): asserts value is PlainObject {
+): asserts value is object {
   if (typeof value !== "object" || Array.isArray(value) || value === null)
     throw new AssertionError(
       name,
@@ -28,12 +26,11 @@ export function assertBoolean(
     throw new AssertionError(name, "a boolean", typeof value);
 }
 
-type ObjectWithKeys<TKeys extends string> = Record<TKeys, unknown> &
-  Record<string, unknown>;
+type ObjectWithKeys<TKeys extends string> = Record<TKeys, unknown>;
 
 export function validateKeys<TKey extends string>(
   name: string,
-  value: PlainObject,
+  value: object,
   validKeys: readonly TKey[],
   disableWarnings = false
 ): asserts value is ObjectWithKeys<TKey> {
@@ -82,7 +79,7 @@ export function assertFullPath(
   value: unknown
 ): asserts value is string {
   assertString(name, value);
-  // TODO: should check `value.indexOf('/') !== 0`?
+  // TODO: should check `value.indexOf('/') !== 0` or !value.startsWith('/')?
   if (value.indexOf("/") < 0)
     throw new AssertionError(
       name,

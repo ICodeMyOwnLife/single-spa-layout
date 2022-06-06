@@ -5,7 +5,7 @@ import { recurseRoutes } from "./recurseRoutes.js";
 import { getParentContainer, getPath } from "./utils.js";
 
 export const createArrangeDomElements =
-  ({ base, containerEl, mode, routes }: ResolvedRoutesConfig) =>
+  ({ base, childNodes, containerEl, mode }: ResolvedRoutesConfig) =>
   () => {
     const baseWithoutSlash = base.substring(0, base.length - 1);
     const path = getPath(mode);
@@ -21,10 +21,10 @@ export const createArrangeDomElements =
     );
     recurseRoutes({
       applicationContainers,
+      childNodes,
       location: window.location,
       parentContainer: getParentContainer(containerEl),
       previousSibling: undefined,
-      routes,
       shouldMount: true,
     });
   };

@@ -59,10 +59,10 @@ const hasErrors = (
 
 export const handleBeforeRouting =
   (
-    routesConfig: ResolvedRoutesConfig,
+    config: ResolvedRoutesConfig,
     errorParcelByAppName: Record<string, Parcel>
   ): SingleSpaEventListener =>
   ({ detail }) => {
-    if (isRedirected(routesConfig, detail)) return;
+    if (isRedirected(config, detail)) return;
     if (hasErrors(errorParcelByAppName, detail)) return;
   };

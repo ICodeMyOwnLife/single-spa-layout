@@ -1,28 +1,32 @@
 import { ParcelConfig } from "single-spa";
 import { inBrowser } from "../../utils/index.js";
 import type {
-  Application,
   HTMLLayoutData,
-  InputRoutesConfigObject,
-  InputRouteChild,
-  InputUrlRoute,
+  InputApplication,
+  InputElement,
   InputNode,
-  InputCustomElement,
-  CustomElement,
-  CustomChildNode,
-} from "../types.js";
+  InputRoute,
+  InputRouteChild,
+  InputRoutesConfig,
+  SslApplication,
+  SslChildNode,
+  SslElement,
+  SslRoute,
+} from "../types/index.js";
 import {
   getAttribute,
   nodeNames,
-  hasAttribute,
   resolvePath,
-} from "../utils.js";
+  RouteChildNode,
+  routeChildNode,
+  setFromAttribute,
+  setIfHasAttribute,
+} from "../utils/index.js";
 
-// TODO: what is MISSING_PROP for?
 export const MISSING_PROP = typeof Symbol !== "undefined" ? Symbol() : "@";
 
 const getProps = (
-  element: HTMLElement | CustomElement,
+  element: HTMLElement | SslElement,
   layoutData: HTMLLayoutData
 ) => {
   const props: Record<string, unknown> = {};
@@ -43,30 +47,10 @@ const getProps = (
   return props;
 };
 
-type HandledElement = Node | CustomChildNode;
-
-const hasNodeName = (element: HandledElement, name: string) =>
-  element.nodeName.toLowerCase() === name;
-
-const isApplication = (element: HandledElement): element is CustomElement =>
-  hasNodeName(element, nodeNames.APPLICATION);
-
-const isRoute = (element: HandledElement): element is CustomElement =>
-  hasNodeName(element, nodeNames.ROUTE);
-
-const isRedirectElement = (element: HandledElement): element is CustomElement =>
-  hasNodeName(element, nodeNames.REDIRECT);
-
-const isNode = (element: HandledElement): element is Node =>
-  typeof Node !== "undefined" && element instanceof Node;
-
-const isParse5Element = (element: HandledElement): element is CustomElement =>
-  "childNodes" in element;
-
 const getApplicationHandler = (
-  element: CustomElement,
+  element: HTMLElement | SslApplication,
   handlers: Optional<Record<string, string | ParcelConfig>>,
-  handlerName: keyof Application
+  handlerName: keyof InputApplication
 ) => {
   const handlerKey = getAttribute(element, handlerName);
   if (!handlerKey) return undefined;
@@ -78,10 +62,10 @@ const getApplicationHandler = (
   return undefined;
 };
 
-const parseApplicationRoutes = (
-  element: CustomElement,
+const parseApplicationElement = (
+  element: HTMLElement | SslApplication,
   layoutData: HTMLLayoutData
-): Application[] => {
+): InputApplication[] => {
   if (element.childNodes.length > 0)
     throw Error(
       `<application> elements must not have childNodes. You must put in a closing </application> - self closing is not allowed`
@@ -91,89 +75,91 @@ const parseApplicationRoutes = (
       error: getApplicationHandler(element, layoutData.errors, "error"),
       loader: getApplicationHandler(element, layoutData.loaders, "loader"),
       name: getAttribute(element, "name")!,
+      nodeName: nodeNames.APPLICATION,
       props: getProps(element, layoutData),
-      type: nodeNames.APPLICATION,
     },
   ];
 };
 
-const parseChildRoutes = (
-  childNodes: CustomChildNode[],
+const parseChildNodes = (
+  childNodes: NodeListOf<ChildNode> | SslChildNode[],
   layoutData: HTMLLayoutData,
-  config: InputRoutesConfigObject
+  config: InputRoutesConfig
 ) => {
-  const routes: InputRouteChild[] = [];
+  const result: InputRouteChild[] = [];
   childNodes.forEach((childNode) =>
-    routes.push(...parseRoutes(childNode, layoutData, config))
+    result.push(...parseRoutes(childNode, layoutData, config))
   );
-  return routes;
+  return result;
 };
 
-const parseRouteRoutes = (
-  element: CustomElement,
+const parseRouteElement = (
+  element: HTMLElement | SslRoute,
   layoutData: HTMLLayoutData,
-  config: InputRoutesConfigObject
-): InputUrlRoute[] => [
+  config: InputRoutesConfig
+): InputRoute[] => [
   {
-    default: hasAttribute(element, "default") || undefined,
-    exact: hasAttribute(element, "exact") || undefined,
-    path: getAttribute(element, "path") ?? undefined,
+    ...setIfHasAttribute("default", element),
+    ...setIfHasAttribute("exact", element),
+    ...setFromAttribute("path")(element),
+    childNodes: parseChildNodes(element.childNodes, layoutData, config),
+    nodeName: nodeNames.ROUTE,
     props: getProps(element, layoutData),
-    routes: parseChildRoutes(element.childNodes, layoutData, config),
-    type: nodeNames.ROUTE,
   },
 ];
 
-const parseNodeRoutes = (
-  element: Node,
+const parseHtmlChildNode = (
+  node: ChildNode,
   layoutData: HTMLLayoutData,
-  config: InputRoutesConfigObject
+  config: InputRoutesConfig
 ): InputNode[] => {
-  if (element.nodeType === Node.TEXT_NODE && element.textContent?.trim() === "")
+  if (node.nodeType === Node.TEXT_NODE && node.textContent?.trim() === "")
     return [];
-  const inputNode = element as InputNode;
-  if (element.childNodes.length > 0) {
-    inputNode.routes = [];
-    for (let i = 0; i < element.childNodes.length; ++i) {
-      inputNode.routes.push(
-        ...parseRoutes(element.childNodes[i] as HTMLElement, layoutData, config)
-      );
-    }
-  }
+  const inputNode: InputNode = {
+    node,
+    nodeName: nodeNames.NODE,
+  };
+  const childNodes: InputRouteChild[] = [];
+  node.childNodes.forEach((childNode) =>
+    childNodes.push(...parseRoutes(childNode, layoutData, config))
+  );
+  if (childNodes.length > 0) inputNode.childNodes = childNodes;
   return [inputNode];
 };
 
-const parseElementRoutes = (
-  element: CustomElement,
+const parseGenericElement = (
+  element: SslElement,
   layoutData: HTMLLayoutData,
-  config: InputRoutesConfigObject
-): InputCustomElement[] => [
+  config: InputRoutesConfig
+): InputElement[] => [
   {
-    type: element.nodeName.toLowerCase(),
-    routes: parseChildRoutes(element.childNodes, layoutData, config),
     attrs: element.attrs,
+    childNodes: parseChildNodes(element.childNodes, layoutData, config),
+    nodeName: element.nodeName.toLowerCase(),
   },
 ];
 
 export const parseRoutes = (
-  element: HandledElement,
+  node: RouteChildNode,
   layoutData: HTMLLayoutData,
-  config: InputRoutesConfigObject
+  config: InputRoutesConfig
 ): InputRouteChild[] => {
-  if (isApplication(element))
-    return parseApplicationRoutes(element, layoutData);
-  if (isRoute(element)) return parseRouteRoutes(element, layoutData, config);
-  if (isRedirectElement(element)) {
-    config.redirects![resolvePath("/", getAttribute(element, "from")!)] =
-      resolvePath("/", getAttribute(element, "to")!);
+  if (routeChildNode.isApplication(node))
+    return parseApplicationElement(node, layoutData);
+  if (routeChildNode.isRoute(node))
+    return parseRouteElement(node, layoutData, config);
+  if (routeChildNode.isRedirect(node)) {
+    config.redirects![resolvePath("/", getAttribute(node, "from")!)] =
+      resolvePath("/", getAttribute(node, "to")!);
     return [];
   }
-  if (isNode(element)) return parseNodeRoutes(element, layoutData, config);
-  if (isParse5Element(element))
-    return parseElementRoutes(element, layoutData, config);
-  if (element.nodeName === nodeNames.COMMENT)
-    return [{ type: nodeNames.COMMENT, value: element.data }];
-  if (element.nodeName === nodeNames.TEXT)
-    return [{ type: nodeNames.TEXT, value: element.value }];
+  if (routeChildNode.isHtmlChildNode(node))
+    return parseHtmlChildNode(node, layoutData, config);
+  if (routeChildNode.isElement(node))
+    return parseGenericElement(node, layoutData, config);
+  if (routeChildNode.isComment(node))
+    return [{ nodeName: nodeNames.COMMENT, data: node.data }];
+  if (routeChildNode.isText(node))
+    return [{ nodeName: nodeNames.TEXT, value: node.value }];
   return [];
 };

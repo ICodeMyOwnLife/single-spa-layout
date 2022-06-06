@@ -1,8 +1,7 @@
 import {
   ActiveWhen,
-  CustomElement,
-  ResolvedRouteChild,
-  routeChild,
+  ResolvedChild,
+  sslResolvedNode,
 } from "../../isomorphic/index.js";
 import type { ApplicationMap } from "./types.js";
 
@@ -10,27 +9,26 @@ export const recurseRoutes = (
   applicationMap: ApplicationMap,
   activeWhen: ActiveWhen,
   props: Record<string, unknown>,
-  routes: ResolvedRouteChild[]
+  childNodes: ResolvedChild[]
 ): void =>
-  routes.forEach((route) => {
-    if (routeChild.isApplication(route))
-      return (applicationMap[route.name] ||= []).push({
+  childNodes.forEach((child) => {
+    if (sslResolvedNode.isApplication(child))
+      return (applicationMap[child.name] ||= []).push({
         activeWhen,
-        props: { ...props, ...route.props },
-        loader: route.loader,
+        props: { ...props, ...child.props },
+        loader: child.loader,
       });
-    if (routeChild.isUrlRoute(route))
+    if (sslResolvedNode.isRoute(child))
       return recurseRoutes(
         applicationMap,
-        route.activeWhen,
-        { ...props, ...route.props },
-        route.routes
+        child.activeWhen,
+        { ...props, ...child.props },
+        child.childNodes
       );
-    if ("routes" in route && Array.isArray(route.routes))
-      return recurseRoutes(
-        applicationMap,
-        activeWhen,
-        props,
-        route.routes as CustomElement[]
-      );
+    return recurseRoutes(
+      applicationMap,
+      activeWhen,
+      props,
+      sslResolvedNode.getChildNodes(child)
+    );
   });

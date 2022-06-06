@@ -1,19 +1,19 @@
 import {
-  Application,
-  CustomElement,
-  ResolvedRouteChild,
-  ResolvedUrlRoute,
-  routeChild,
+  ResolvedApplication,
+  ResolvedChild,
+  ResolvedDomChild,
+  ResolvedRoute,
+  sslResolvedNode,
 } from "../../isomorphic/index.js";
 import { applicationElementId } from "../../utils/index.js";
-import { createNodeFromObj, insertNode } from "./utils.js";
+import { createNodeFromRouteChild, insertNode } from "./utils.js";
 
 export interface DomChangeInput {
   applicationContainers: Record<string, HTMLElement>;
+  childNodes: ResolvedChild[];
   location: Location | URL;
   parentContainer: Node;
   previousSibling?: Node;
-  routes: ResolvedRouteChild[];
   shouldMount: boolean;
 }
 
@@ -24,7 +24,7 @@ const createApplicationElement = (htmlId: string) => {
 };
 
 const processApplication = (
-  { name }: Application,
+  { name }: ResolvedApplication,
   { applicationContainers, parentContainer, shouldMount }: DomChangeInput,
   previousSibling: Optional<Node>
 ) => {
@@ -38,8 +38,8 @@ const processApplication = (
   return applicationElement;
 };
 
-const processUrlRoute = (
-  { activeWhen, routes }: ResolvedUrlRoute,
+const processRoute = (
+  { activeWhen, childNodes }: ResolvedRoute,
   {
     applicationContainers,
     location,
@@ -50,17 +50,15 @@ const processUrlRoute = (
 ) =>
   recurseRoutes({
     applicationContainers,
+    childNodes,
     location,
     parentContainer,
     previousSibling,
-    routes: routes,
     shouldMount: shouldMount && activeWhen(location),
   });
 
-type ExtendedNode = (CustomElement | Node) & { connectedNode?: Node };
-
-const processNode = (
-  node: Node | CustomElement,
+const processDomChild = (
+  domChild: ResolvedDomChild,
   {
     applicationContainers,
     location,
@@ -69,42 +67,42 @@ const processNode = (
   }: DomChangeInput,
   previousSibling: Optional<Node>
 ) => {
-  const extendedNode = node as ExtendedNode;
   if (!shouldMount) {
-    extendedNode.connectedNode?.parentNode?.removeChild(
-      extendedNode.connectedNode
-    );
-    delete extendedNode.connectedNode;
+    domChild._connectedNode?.parentNode?.removeChild(domChild._connectedNode);
+    delete domChild._connectedNode;
     return previousSibling;
   }
 
-  extendedNode.connectedNode ||=
-    node instanceof Node
-      ? node.cloneNode(false)
-      : createNodeFromObj(node, true);
-  insertNode(extendedNode.connectedNode, parentContainer, previousSibling);
-  if ("routes" in extendedNode)
+  // TODO: Review this: why shallowly clone node but recursively create node?
+  domChild._connectedNode ||= sslResolvedNode.isNode(domChild)
+    ? domChild.node.cloneNode(false)
+    : createNodeFromRouteChild(domChild, true);
+  insertNode(domChild._connectedNode, parentContainer, previousSibling);
+  if ("childNodes" in domChild)
     recurseRoutes({
       applicationContainers,
       location,
-      parentContainer: extendedNode.connectedNode,
+      parentContainer: domChild._connectedNode,
       previousSibling: undefined,
-      routes: extendedNode.routes as CustomElement[],
+      childNodes: domChild.childNodes,
       shouldMount,
     });
-  return extendedNode.connectedNode;
+  return domChild._connectedNode;
 };
 
 export const recurseRoutes = (input: DomChangeInput) => {
   let previousSibling = input.previousSibling;
 
-  input.routes.forEach((route) => {
-    if (routeChild.isApplication(route))
-      previousSibling = processApplication(route, input, previousSibling);
-    else if (routeChild.isUrlRoute(route))
-      previousSibling = processUrlRoute(route, input, previousSibling);
-    else if (route instanceof Node || typeof route.type === "string")
-      previousSibling = processNode(route, input, previousSibling);
+  input.childNodes.forEach((child) => {
+    if (sslResolvedNode.isApplication(child))
+      previousSibling = processApplication(child, input, previousSibling);
+    else if (sslResolvedNode.isRoute(child))
+      previousSibling = processRoute(child, input, previousSibling);
+    else if (
+      sslResolvedNode.isNode(child) ||
+      typeof child.nodeName === "string"
+    )
+      previousSibling = processDomChild(child, input, previousSibling);
   });
 
   return previousSibling;

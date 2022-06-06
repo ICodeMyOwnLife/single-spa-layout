@@ -1,4 +1,5 @@
 import { Readable } from "node:stream";
+import { debuglog } from "node:util";
 import { isPromise } from "../../utils/index.js";
 import { logError } from "./logError.js";
 
@@ -13,9 +14,10 @@ type MergeStreamItem = {
 
 export class MergeStream extends Readable {
   private ended = false;
-  private wholeText = "";
-  private queue: MergeStreamItem[] = [];
+  private log = debuglog("MergeStream");
   private merging = false;
+  private queue: MergeStreamItem[] = [];
+  private wholeText = "";
 
   constructor(public readonly streamName: string) {
     super();
@@ -26,8 +28,8 @@ export class MergeStream extends Readable {
 
   override push(chunk: unknown, _encoding?: BufferEncoding): boolean {
     const text = String(chunk);
-    if (process.env.DEBUG) {
-      console.log(`MergeStream#${this.streamName}: push\n${text}`);
+    if (process.env.NODE_ENV === "development") {
+      this.log(`MergeStream#${this.streamName}: push\n${text}`);
       this.wholeText += text;
     }
     return super.push(text);
@@ -38,14 +40,16 @@ export class MergeStream extends Readable {
       throw Error(
         `MergeStream#${this.streamName} Error: Adding value to already ended stream`
       );
+    if (process.env.NODE_ENV === "development")
+      this.log(`MergeStream#${this.streamName}: add\n${input}`);
     this.queue.push({ input, name });
     this.next();
     return this;
   }
 
   private endStream() {
-    if (process.env.DEBUG)
-      console.log(`MergeStream#${this.streamName}: end\n${this.wholeText}`);
+    if (process.env.NODE_ENV === "development")
+      this.log(`MergeStream#${this.streamName}: end\n${this.wholeText}`);
     this.ended = true;
     super.push(null);
   }

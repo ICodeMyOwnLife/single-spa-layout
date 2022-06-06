@@ -10,7 +10,7 @@ export interface LayoutEngine {
 
 export interface LayoutEngineOptions {
   active?: boolean;
-  routes: ResolvedRoutesConfig;
+  config: ResolvedRoutesConfig;
 }
 
 export type SingleSpaEventListener = (

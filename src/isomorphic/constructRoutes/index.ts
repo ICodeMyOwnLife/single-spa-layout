@@ -1,13 +1,12 @@
-import { html } from "parse5";
 import { inBrowser } from "../../utils/index.js";
 import type {
   HTMLLayoutData,
-  InputRoutesConfigObject,
-  RouteMode,
+  InputRoutesConfig,
   ResolvedRoutesConfig,
-  CustomElement,
-} from "../types.js";
-import { nodeNames, getAttribute } from "../utils.js";
+  RouteMode,
+  SslElement,
+} from "../types/index.js";
+import { nodeNames, setFromAttribute } from "../utils/index.js";
 import { parseRoutes } from "./parseRoutes.js";
 import { validateRoutesConfig } from "./validateRoutesConfig.js";
 
@@ -31,33 +30,25 @@ const parseRouterElement = (html: string) => {
 const getHtmlLayoutData = (layoutData: Optional<HTMLLayoutData>) =>
   layoutData || (inBrowser ? window.singleSpaLayoutData : undefined);
 
+const isHTMLTemplateElement = (
+  element: HTMLElement | SslElement
+): element is HTMLTemplateElement =>
+  typeof HTMLTemplateElement !== "undefined" &&
+  element instanceof HTMLTemplateElement;
+
 const isHTMLElement = (
-  element: HTMLElement | CustomElement
+  element: HTMLElement | SslElement
 ): element is HTMLElement =>
   inBrowser ||
   (typeof HTMLElement !== "undefined" && element instanceof HTMLElement);
 
-export const isTemplateElement = (
-  element: CustomElement | HTMLElement
-): element is HTMLTemplateElement =>
-  element.tagName.toLowerCase() === html.TAG_NAMES.TEMPLATE;
-
-const setIfHasValue = <TName extends string, TValue>(
-  key: TName,
-  value: Nullable<TValue>
-) => (!!value ? ({ [key]: value } as Record<TName, TValue>) : undefined);
-
-const setFromAttribute =
-  <TName extends string>(attrName: TName) =>
-  <TValue extends string>(routerElement: HTMLElement | CustomElement) =>
-    setIfHasValue(attrName, getAttribute(routerElement, attrName) as TValue);
-
 const elementToRoutesConfig = (
-  element: HTMLElement | CustomElement,
+  element: HTMLElement | SslElement,
   htmlLayoutData: HTMLLayoutData = {}
-): InputRoutesConfigObject => {
-  const routerElement = isTemplateElement(element)
-    ? element.content.querySelector<HTMLElement>(nodeNames.ROUTER)!
+): InputRoutesConfig => {
+  const routerElement = isHTMLTemplateElement(element)
+    ? // IE11 doesn't support the content property on templates
+      (element.content || element).querySelector<HTMLElement>(nodeNames.ROUTER)!
     : element;
 
   if (routerElement.nodeName.toLowerCase() !== nodeNames.ROUTER)
@@ -72,43 +63,46 @@ const elementToRoutesConfig = (
   )
     element.remove();
 
-  const result: InputRoutesConfigObject = {
+  const result: InputRoutesConfig = {
     ...setFromAttribute("base")(routerElement),
     ...setFromAttribute("containerEl")(routerElement),
     ...setFromAttribute("mode")<RouteMode>(routerElement),
+    childNodes: [],
     redirects: {},
-    routes: [],
   };
   routerElement.childNodes.forEach((child) =>
-    result.routes.push(...parseRoutes(child, htmlLayoutData, result))
+    result.childNodes.push(...parseRoutes(child, htmlLayoutData, result))
   );
-
   return result;
 };
 
-export function constructRoutes(
-  htmlOrElement: string | CustomElement | HTMLElement,
-  layoutData?: HTMLLayoutData
-): ResolvedRoutesConfig;
-export function constructRoutes(
-  configObject: InputRoutesConfigObject
-): ResolvedRoutesConfig;
-export function constructRoutes(
-  arg1: string | CustomElement | HTMLElement | InputRoutesConfigObject,
+const getInputConfig = (
+  arg1: string | HTMLElement | SslElement | InputRoutesConfig,
   arg2?: HTMLLayoutData
-): ResolvedRoutesConfig {
-  let config: InputRoutesConfigObject;
+): InputRoutesConfig => {
   if (typeof arg1 === "string" || "nodeName" in arg1) {
-    const domElement =
-      typeof arg1 === "string" ? parseRouterElement(arg1) : arg1;
-    config = elementToRoutesConfig(domElement, getHtmlLayoutData(arg2));
-  } else if (arg2) {
+    const element = typeof arg1 === "string" ? parseRouterElement(arg1) : arg1;
+    return elementToRoutesConfig(element, getHtmlLayoutData(arg2));
+  }
+  if (arg2)
     throw Error(
       `constructRoutes should be called either with an HTMLElement and layoutData, or a single json object.`
     );
-  } else {
-    config = arg1;
-  }
+  return arg1;
+};
+
+export function constructRoutes(
+  htmlOrElement: string | HTMLElement | SslElement,
+  layoutData?: HTMLLayoutData
+): ResolvedRoutesConfig;
+export function constructRoutes(
+  configObject: InputRoutesConfig
+): ResolvedRoutesConfig;
+export function constructRoutes(
+  arg1: string | HTMLElement | SslElement | InputRoutesConfig,
+  arg2?: HTMLLayoutData
+): ResolvedRoutesConfig {
+  const config = getInputConfig(arg1, arg2);
   validateRoutesConfig(config);
   return config;
 }

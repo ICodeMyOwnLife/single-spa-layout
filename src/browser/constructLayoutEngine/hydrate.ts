@@ -1,22 +1,5 @@
-import {
-  Application,
-  CustomElement,
-  nodeNames,
-  ResolvedRouteChild,
-  routeChild,
-} from "../../isomorphic/index.js";
-import { createNodeFromObj } from "./utils.js";
-
-const DOM_NODE_NAMES: string[] = [
-  nodeNames.APPLICATION,
-  nodeNames.ASSETS,
-  nodeNames.FRAGMENT,
-  nodeNames.REDIRECT,
-  nodeNames.ROUTE,
-];
-
-const isDomRoute = (route: ResolvedRouteChild) =>
-  !("type" in route) || !DOM_NODE_NAMES.includes(route.type);
+import { ResolvedChild, sslResolvedNode } from "../../isomorphic/index.js";
+import { createNodeFromRouteChild } from "./utils.js";
 
 const equalAttributes = (first: Node, second: Node) => {
   if (!(first instanceof Element) || !(second instanceof Element)) return true;
@@ -36,31 +19,27 @@ const shallowEqualNode = (first: Node, second: Node) =>
   first.nodeType === second.nodeType &&
   equalAttributes(first, second);
 
-const nodeEqualsRoute = (node: Nullable<Node>, route: ResolvedRouteChild) =>
+const isEqual = (node: Nullable<Node>, child: ResolvedChild) =>
   !node
     ? false
     : shallowEqualNode(
         node,
-        route instanceof Node ? route : createNodeFromObj(route)
+        sslResolvedNode.isNode(child)
+          ? child.node
+          : createNodeFromRouteChild(child)
       );
 
 type PreviousNode = Nullable<{ nextSibling: Nullable<ChildNode> }>;
 
-type ExtendedRoute = (Application | CustomElement | Node) & {
-  connectedNode: Nullable<Node>;
-};
-
 export const hydrate = (
   domNode: Nullable<Node>,
-  routes: Optional<ResolvedRouteChild[]>
+  childNodes: Optional<ResolvedChild[]>
 ) => {
-  if (!domNode?.childNodes || !routes) return;
+  if (!domNode?.childNodes || !childNodes) return;
   let prevNode: PreviousNode = { nextSibling: domNode.childNodes[0] };
-  routes.forEach((route) => {
-    if (routeChild.isUrlRoute(route)) {
-      hydrate(domNode, route.routes);
-      return;
-    }
+  childNodes.forEach((child) => {
+    if (sslResolvedNode.isRoute(child))
+      return hydrate(domNode, child.childNodes);
     let node: Nullable<Node> = prevNode?.nextSibling;
     while (
       node?.nodeType === Node.TEXT_NODE &&
@@ -68,8 +47,8 @@ export const hydrate = (
     )
       node = node.nextSibling;
     prevNode = node;
-    if (isDomRoute(route) && nodeEqualsRoute(node, route))
-      (route as ExtendedRoute).connectedNode = node;
-    if ("routes" in route) hydrate(node, route.routes as CustomElement[]);
+    if (sslResolvedNode.isDom(child) && isEqual(node, child))
+      child._connectedNode = node;
+    hydrate(node, sslResolvedNode.getChildNodes(child));
   });
 };

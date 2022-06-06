@@ -1,13 +1,13 @@
-import { serializeChildNodes } from "./serializers.js";
-import { MergeStream } from "./streams.js";
-import type { AppHeaders, RenderOptions, SerializeArgs } from "./types.js";
+import { MergeStream } from "./MergeStream.js";
+import { renderChildNodes } from "./renderChildNodes.js";
+import type { AppHeaders, RenderArgs, RenderOptions } from "./types.js";
 
 export * from "./types.js";
 
 const isRedirected = ({
   res,
   serverLayout: {
-    resolvedRoutes: { redirects },
+    resolvedConfig: { redirects },
   },
   urlPath,
 }: RenderOptions) => {
@@ -21,29 +21,11 @@ const isRedirected = ({
   return false;
 };
 
-const serializeDocument = (renderOptions: RenderOptions) => {
-  const {
-    serverLayout: { parsedDocument },
-  } = renderOptions;
-  const args: SerializeArgs = {
-    applicationPropPromises: {},
-    assetsStream: new MergeStream("assetsStream"),
-    bodyStream: new MergeStream("bodyStream"),
-    headerPromises: {},
-    inRouterElement: false,
-    node: parsedDocument,
-    propPromises: {},
-    renderOptions,
-  };
-  serializeChildNodes(args);
-  return args;
-};
-
 const getHeaders = async ({
   applicationPropPromises,
   headerPromises,
   renderOptions: { assembleFinalHeaders },
-}: SerializeArgs) => {
+}: RenderArgs) => {
   const appHeaders = await Promise.all(
     Object.entries(headerPromises).map<Promise<AppHeaders>>(
       async ([appName, headerPromise]) => {
@@ -60,7 +42,18 @@ const getHeaders = async ({
 
 export const sendLayoutHTTPResponse = async (renderOptions: RenderOptions) => {
   if (isRedirected(renderOptions)) return;
-  const args = serializeDocument(renderOptions);
+  const {
+    serverLayout: { parsedDocument },
+  } = renderOptions;
+  const args: RenderArgs = {
+    applicationPropPromises: {},
+    assetsStream: new MergeStream("assetsStream"),
+    bodyStream: new MergeStream("bodyStream"),
+    headerPromises: {},
+    propPromises: {},
+    renderOptions,
+  };
+  renderChildNodes(parsedDocument, args);
   const headers = await getHeaders(args);
   const { res } = renderOptions;
   const { bodyStream } = args;

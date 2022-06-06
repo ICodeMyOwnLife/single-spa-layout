@@ -9,8 +9,8 @@ interface LoadAppProps {
 }
 
 export interface ApplicationOptions {
+  config: ResolvedRoutesConfig;
   loadApp: (config: LoadAppProps) => Promise<LifeCycles>;
-  routes: ResolvedRoutesConfig;
 }
 
 export interface AppRoute {

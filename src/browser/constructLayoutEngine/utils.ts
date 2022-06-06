@@ -1,13 +1,10 @@
 import { checkActivityFunctions, getAppNames } from "single-spa";
 import {
-  Application,
   ContainerEl,
-  CustomCommentNode,
-  CustomNode,
-  CustomTextNode,
-  nodeNames,
-  ResolvedUrlRoute,
+  ResolvedChild,
+  ResolvedNode,
   RouteMode,
+  sslResolvedNode,
 } from "../../isomorphic/index.js";
 
 export const getAppsToUnmount = (newUrl: string) => {
@@ -41,23 +38,25 @@ export const insertNode = (
   if (nextSibling !== node) container.insertBefore(node, nextSibling);
 };
 
-export const createNodeFromObj = (
-  obj: Application | ResolvedUrlRoute | CustomNode,
+export const createNodeFromRouteChild = (
+  routeChild: Exclude<ResolvedChild, ResolvedNode>,
   recursive = false
 ): Node => {
-  if (obj.type === nodeNames.TEXT)
-    return document.createTextNode((obj as CustomTextNode).value);
-  if (obj.type === nodeNames.COMMENT)
-    return document.createComment((obj as CustomCommentNode).value);
-  const node = document.createElement(obj.type);
-  ("attrs" in obj ? obj.attrs : []).forEach((attr) =>
+  if (sslResolvedNode.isText(routeChild))
+    return document.createTextNode(routeChild.value);
+  if (sslResolvedNode.isComment(routeChild))
+    return document.createComment(routeChild.data);
+  const node = document.createElement(routeChild.nodeName);
+
+  (("attrs" in routeChild && routeChild.attrs) || []).forEach((attr) =>
     node.setAttribute(attr.name, attr.value)
   );
+
   recursive &&
-    "routes" in obj &&
-    obj.routes.forEach(
+    routeChild.childNodes?.forEach(
       (child) =>
-        !(child instanceof Node) && node.appendChild(createNodeFromObj(child))
+        !sslResolvedNode.isNode(child) &&
+        node.appendChild(createNodeFromRouteChild(child))
     );
   return node;
 };

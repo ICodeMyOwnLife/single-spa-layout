@@ -1,36 +1,29 @@
 import { assertString, inBrowser } from "../../utils/index.js";
-import type {
-  CustomElement,
-  ResolvedRouteChild,
-  ResolvedRoutesConfig,
-} from "../types.js";
-import { resolvePath, routeChild } from "../utils.js";
+import type { ResolvedChild, ResolvedRoutesConfig } from "../types/index.js";
+import { resolvePath, sslResolvedNode } from "../utils/index.js";
 
 const recurseRoutes = (
   location: Location | URL,
-  routes: ResolvedRouteChild[]
+  childNodes: ResolvedChild[]
 ) => {
-  const result: ResolvedRouteChild[] = [];
+  const result: ResolvedChild[] = [];
 
-  routes.forEach((route) => {
-    if (routeChild.isApplication(route)) return result.push(route);
-    if (routeChild.isUrlRoute(route))
+  childNodes.forEach((child) => {
+    if (sslResolvedNode.isApplication(child)) return result.push(child);
+    if (sslResolvedNode.isRoute(child))
       return (
-        route.activeWhen(location) &&
+        child.activeWhen(location) &&
         result.push({
-          ...route,
-          routes: recurseRoutes(location, route.routes),
+          ...child,
+          childNodes: recurseRoutes(location, child.childNodes),
         })
       );
-    if ("routes" in route && Array.isArray(route.routes))
+    if ("childNodes" in child)
       return result.push({
-        ...route,
-        routes: recurseRoutes(
-          location,
-          route.routes as CustomElement[]
-        ) as CustomElement[],
+        ...child,
+        childNodes: recurseRoutes(location, child.childNodes),
       });
-    return result.push(route);
+    return result.push(child);
   });
 
   return result;
@@ -47,8 +40,8 @@ export const matchRoute = (
   if (path.indexOf(baseWithoutSlash) === 0) {
     const origin = inBrowser ? window.location.origin : "http://localhost";
     const url = new URL(resolvePath(origin, path));
-    result.routes = recurseRoutes(url, config.routes);
-  } else result.routes = [];
+    result.childNodes = recurseRoutes(url, config.childNodes);
+  } else result.childNodes = [];
 
   return result;
 };

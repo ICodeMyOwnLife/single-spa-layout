@@ -7,7 +7,7 @@ import ts from "rollup-plugin-ts";
 import pkg from "./package.json";
 
 const CWD = process.cwd();
-const isDevelopment = process.env["DEVELOPMENT"] === "true";
+const isDev = process.env["ROLLUP_WATCH"] === "true";
 
 const createConfig = ({
   format,
@@ -20,7 +20,13 @@ const createConfig = ({
     mode === "server"
       ? resolve(CWD, "src/server/index.ts")
       : resolve(CWD, "src/browser/index.ts");
-  const outputFile = resolve(CWD, `dist/${format}/${mode}.js`);
+  const extension =
+    format === "esm" || format === "es" || format === "module"
+      ? "mjs"
+      : format === "cjs" || format === "commonjs"
+      ? "cjs"
+      : "js";
+  const outputFile = resolve(CWD, `dist/${format}/${mode}.${extension}`);
   const babelOpts: RollupBabelInputPluginOptions =
     mode === "server"
       ? { babelHelpers: "bundled", envName: "server" }
@@ -32,25 +38,24 @@ const createConfig = ({
       banner: `/*! ${pkg.name}/${mode}@${pkg.version} - ${format} format */`,
       file: outputFile,
       format,
-      sourcemap: isDevelopment,
+      sourcemap: isDev,
     },
     external: ["merge2", /^node:*/, /^parse5.*/, "single-spa"],
     plugins: [
       ts({
-        tsconfig: resolve(
-          CWD,
-          isDevelopment ? "tsconfig.dev.json" : "tsconfig.json"
-        ),
+        tsconfig: resolve(CWD, isDev ? "tsconfig.dev.json" : "tsconfig.json"),
       }),
       babel(babelOpts),
       replace({
         preventAssignment: true,
         values: {
           "process.env.BABEL_ENV": JSON.stringify("production"),
-          "process.env.DEBUG": JSON.stringify(process.env["DEBUG"]),
+          "process.env.NODE_ENV": JSON.stringify(
+            isDev ? "development" : "production"
+          ),
         },
       }),
-      !isDevelopment && terser({ compress: { passes: 2 } }),
+      !isDev && terser({ compress: { passes: 2 } }),
     ],
   });
 };

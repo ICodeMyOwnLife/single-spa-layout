@@ -1,60 +1,57 @@
 import { AppError, mountRootParcel, Parcel } from "single-spa";
 import {
-  Application,
-  CustomElement,
-  ResolvedRouteChild,
+  ResolvedApplication,
+  ResolvedChild,
   ResolvedRoutesConfig,
-  routeChild,
+  sslResolvedNode,
 } from "../../isomorphic/index.js";
 import { applicationElementId, htmlToParcelConfig } from "../../utils/index.js";
 
-interface FindApplicationRouteInput {
-  applicationName: string;
-  location: Location | URL;
-  routes: ResolvedRouteChild[];
-}
+const findIfApplication = (applicationName: string, child: ResolvedChild) =>
+  sslResolvedNode.isApplication(child) && child.name === applicationName
+    ? child
+    : undefined;
 
-const findApplicationRoute = ({
-  applicationName,
-  location,
-  routes,
-}: FindApplicationRouteInput): Optional<Application> => {
-  for (const route of routes) {
-    if (routeChild.isApplication(route)) {
-      if (route.name === applicationName) return route;
-    } else if (routeChild.isUrlRoute(route)) {
-      if (route.activeWhen(location)) {
-        const result = findApplicationRoute({
-          applicationName,
-          location,
-          routes: route.routes,
-        });
-        if (result) return result;
-      }
-    } else if ("routes" in route) {
-      const result = findApplicationRoute({
+const findIfRoute = (
+  applicationName: string,
+  location: Location | URL,
+  child: ResolvedChild
+) =>
+  sslResolvedNode.isRoute(child) && child.activeWhen(location)
+    ? findApplication(applicationName, child.childNodes, location)
+    : undefined;
+
+const findApplication = (
+  applicationName: string,
+  childNodes: ResolvedChild[],
+  location: Location | URL
+): Optional<ResolvedApplication> => {
+  for (const child of childNodes) {
+    const result =
+      findIfApplication(applicationName, child) ||
+      findIfRoute(applicationName, location, child) ||
+      findApplication(
         applicationName,
-        location,
-        routes: route.routes as CustomElement[],
-      });
-      if (result) return result;
-    }
+        sslResolvedNode.getChildNodes(child),
+        location
+      );
+    if (result) return result;
   }
   return undefined;
 };
 
 export const handleError =
   (
-    { routes }: ResolvedRoutesConfig,
+    { childNodes }: ResolvedRoutesConfig,
     errorParcelByAppName: Record<string, Parcel>
   ) =>
   (err: AppError) => {
     const { appOrParcelName } = err;
-    const applicationRoute = findApplicationRoute({
-      applicationName: appOrParcelName,
-      location: window.location,
-      routes,
-    });
+    const applicationRoute = findApplication(
+      appOrParcelName,
+      childNodes,
+      window.location
+    );
     const errorHandler = applicationRoute?.error;
     if (errorHandler) {
       const applicationContainer = document.getElementById(

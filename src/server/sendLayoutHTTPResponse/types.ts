@@ -1,7 +1,6 @@
 import { ServerResponse } from "node:http";
-import { CustomNode } from "../../isomorphic/index.js";
 import type { ServerLayout } from "../types.js";
-import { MergeStream, StreamValue } from "./streams.js";
+import { MergeStream, StreamValue } from "./MergeStream.js";
 
 export interface AppToRender {
   appName: string;
@@ -32,15 +31,11 @@ export interface RenderOptions {
   urlPath: string;
 }
 
-export interface SerializeArgs {
+export interface RenderArgs {
   applicationPropPromises: Record<string, Promise<Record<string, unknown>>>;
   assetsStream: MergeStream;
   bodyStream: MergeStream;
   headerPromises: Record<string, Promise<Record<string, string>>>;
-  inRouterElement: boolean;
-  node: CustomNode;
   propPromises: Record<string, Promise<unknown>>;
   renderOptions: RenderOptions;
 }
-
-export type SerializeFunc = (args: SerializeArgs) => void;

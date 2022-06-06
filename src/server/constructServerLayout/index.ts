@@ -1,15 +1,17 @@
 import { readFileSync } from "node:fs";
-import { html } from "parse5";
+import { defaultTreeAdapter, html } from "parse5";
 import {
   constructRoutes,
-  CustomElement,
-  CustomNode,
-  CustomTreeAdapterMap,
   nodeNames,
+  ResolvedRoutesConfig,
+  SslDocument,
+  SslElement,
+  SslNode,
+  sslResolvedNode,
+  SslTreeAdapterMap,
 } from "../../isomorphic/index.js";
 import { assertString } from "../../utils/index.js";
-import { CustomParser } from "../CustomParser/index.js";
-import { treeAdapter } from "../treeAdapter/index.js";
+import { SslParser } from "../SslParser/index.js";
 import type { HTMLTemplateOptions, ServerLayout } from "../types.js";
 
 export * from "../types.js";
@@ -31,7 +33,7 @@ const getHtmlString = (templateOptions: HTMLTemplateOptions) => {
 
 const parseDocument = (htmlString: string) => {
   try {
-    return CustomParser.parse<CustomTreeAdapterMap>(htmlString);
+    return SslParser.parse<SslTreeAdapterMap>(htmlString);
   } catch (error) {
     console.error(`${errPrefix} failed to parse HTML template with parse5.`);
     throw error;
@@ -39,23 +41,18 @@ const parseDocument = (htmlString: string) => {
 };
 
 const findElementRecursive = (
-  rootNode: CustomNode,
+  rootNode: SslNode,
   nodeName: string
-): CustomElement | null => {
-  if (treeAdapter.isElementNode(rootNode)) {
-    const tagName = treeAdapter.getTagName(rootNode);
-    if (tagName === nodeName) return rootNode;
-  }
+): SslElement | null => {
+  if (sslResolvedNode.isElement(rootNode) && rootNode.tagName === nodeName)
+    return rootNode;
 
-  const childNodes = treeAdapter.isTemplateNode(rootNode)
-    ? treeAdapter.getChildNodes(treeAdapter.getTemplateContent(rootNode))
-    : treeAdapter.isParentNode(rootNode)
-    ? treeAdapter.getChildNodes(rootNode)
-    : [];
-
+  const childNodes = sslResolvedNode.getChildNodes(
+    sslResolvedNode.isTemplate(rootNode) ? rootNode.content : rootNode
+  );
   for (const childNode of childNodes) {
     const result =
-      treeAdapter.isElementNode(childNode) &&
+      sslResolvedNode.isElement(childNode) &&
       findElementRecursive(childNode, nodeName);
     if (result) return result;
   }
@@ -63,10 +60,29 @@ const findElementRecursive = (
   return null;
 };
 
-const findElement = (rootNode: CustomNode, nodeName: string) => {
+const findElement = (rootNode: SslNode, nodeName: string) => {
   const element = findElementRecursive(rootNode, nodeName);
   if (element) return element;
   throw Error(`${errPrefix} could not find ${nodeName} element in HTML`);
+};
+
+const insertRouterContent = (
+  parsedDocument: SslDocument,
+  { containerEl }: ResolvedRoutesConfig
+) => {
+  const container =
+    typeof containerEl === "string"
+      ? findElement(parsedDocument, containerEl)
+      : (containerEl as SslElement);
+  const routerFragment = defaultTreeAdapter.createElement(
+    nodeNames.ROUTER_CONTENT,
+    html.NS.HTML,
+    []
+  );
+  const firstChild = defaultTreeAdapter.getFirstChild(container);
+  firstChild
+    ? defaultTreeAdapter.insertBefore(container, routerFragment, firstChild)
+    : defaultTreeAdapter.appendChild(container, routerFragment);
 };
 
 export const constructServerLayout = (
@@ -76,22 +92,7 @@ export const constructServerLayout = (
   const htmlString = getHtmlString(templateOptions);
   const parsedDocument = parseDocument(htmlString);
   const routerElement = findElement(parsedDocument, nodeNames.ROUTER);
-  const resolvedRoutes = constructRoutes(routerElement, {});
-  const containerEl =
-    typeof resolvedRoutes.containerEl === "string"
-      ? findElement(parsedDocument, resolvedRoutes.containerEl)
-      : (resolvedRoutes.containerEl as CustomElement);
-  const routerFragment = treeAdapter.createElement(
-    nodeNames.ROUTER_CONTENT,
-    html.NS.HTML,
-    []
-  );
-  const firstChild = treeAdapter.getFirstChild(containerEl);
-  firstChild
-    ? treeAdapter.insertBefore(containerEl, routerFragment, firstChild)
-    : treeAdapter.appendChild(containerEl, routerFragment);
-  return {
-    parsedDocument,
-    resolvedRoutes,
-  };
+  const resolvedConfig = constructRoutes(routerElement, {});
+  insertRouterContent(parsedDocument, resolvedConfig);
+  return { parsedDocument, resolvedConfig };
 };

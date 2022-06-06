@@ -10,6 +10,6 @@ export {
 export {
   constructRoutes,
   type HTMLLayoutData,
-  type InputRoutesConfigObject,
+  type InputRoutesConfig,
   type ResolvedRoutesConfig,
 } from "../isomorphic/index.js";

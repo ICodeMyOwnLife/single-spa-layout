@@ -4,19 +4,27 @@
   "description": "Layout engine for single-spa applications",
   "type": "module",
   "exports": {
-    "./browser": {
-      "import": "./dist/esm/browser.js"
-    },
+    "./browser": "./dist/esm/browser.mjs",
     "./server": {
-      "import": "./dist/esm/server.js",
-      "require": "./dist/cjs/server.js"
+      "import": "./dist/esm/server.mjs",
+      "require": "./dist/cjs/server.cjs"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "browser": [
+        "./dist/esm/browser.d.mts"
+      ],
+      "server": [
+        "./dist/esm/server.d.mts"
+      ]
     }
   },
   "scripts": {
     "prepublishOnly": "yarn build",
     "build": "rollup -c rollup.config.ts --configPlugin rollup-plugin-ts",
-    "build:watch": "DEBUG=true yarn build -w --environment DEVELOPMENT",
     "check-format": "prettier --check .",
+    "dev:build": "yarn build -w",
     "lint": "eslint src",
     "format": "prettier --write .",
     "test": "concurrently -n w: 'yarn:test:*'",
@@ -76,13 +84,12 @@
     "prettier": "^2.3.2",
     "pretty-quick": "^3.1.1",
     "rimraf": "^3.0.2",
-    "rollup": "^2.74.1",
+    "rollup": "^2.75.5",
     "rollup-plugin-terser": "^7.0.2",
-    "rollup-plugin-ts": "^2.0.7",
+    "rollup-plugin-ts": "^3.0.1",
     "single-spa": "^6.0.0-beta.2",
-    "ts-node": "10.8.0",
     "tsd": "^0.20.0",
-    "typescript": "4.6.4"
+    "typescript": "4.7.3"
   },
   "peerDependencies": {
     "parse5": "^7.0.0",

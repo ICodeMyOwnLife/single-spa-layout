@@ -13,18 +13,18 @@ import { getParentContainer } from "./utils.js";
 export * from "./types.js";
 
 export const constructLayoutEngine = ({
-  routes,
+  config,
   active,
 }: LayoutEngineOptions) => {
   const errorParcelByAppName: Record<string, Parcel> = {};
-  const arrangeDomElements = createArrangeDomElements(routes);
+  const arrangeDomElements = createArrangeDomElements(config);
   const beforeMountRoutingHandler =
     handleBeforeMountRouting(arrangeDomElements);
   const beforeRoutingHandler = handleBeforeRouting(
-    routes,
+    config,
     errorParcelByAppName
   );
-  const errorHandler = handleError(routes, errorParcelByAppName);
+  const errorHandler = handleError(config, errorParcelByAppName);
   const routingHandler = handleRouting();
   const wasServerRendered = inBrowser && !!window.singleSpaLayoutData;
   let isActive = false;
@@ -44,7 +44,7 @@ export const constructLayoutEngine = ({
       window.addEventListener(SingeSpaEvent.Routing, routingHandler);
       addErrorHandler(errorHandler);
       wasServerRendered &&
-        hydrate(getParentContainer(routes.containerEl), routes.routes);
+        hydrate(getParentContainer(config.containerEl), config.childNodes);
       arrangeDomElements();
     },
     deactivate: () => {

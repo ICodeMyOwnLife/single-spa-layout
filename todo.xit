@@ -1,4 +1,0 @@
-[ ] Wait for https://github.com/wessberg/rollup-plugin-ts/issues/181 to be resolved then upgrade typescript to 4.7
-[ ] Move Application and ResolvedUrlRoute to CustomNode?
-[x] SingleSpaCustomEventListener?
-[ ] AsyncStream?
