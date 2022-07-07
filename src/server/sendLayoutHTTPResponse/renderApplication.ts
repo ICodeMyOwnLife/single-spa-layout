@@ -3,13 +3,14 @@ import {
   applicationElementId,
   appPropsScriptId,
   dataScript,
+  getAppName,
 } from '../../utils/index.js';
 import { logError } from './logError.js';
-import { MergeStream } from './MergeStream.js';
+import { MergeStream, StreamInput } from './MergeStream.js';
 import { AppToRender, RenderArgs } from './types.js';
 
 const getPropsPromise = async (
-  { name: appName, props: configProps = {} }: ResolvedApplication,
+  { name, props: configProps = {} }: ResolvedApplication,
   { propPromises, renderOptions: { retrieveProp } }: RenderArgs,
 ) => {
   const propEntries = await Promise.all(
@@ -24,33 +25,46 @@ const getPropsPromise = async (
     }),
   );
   const props = Object.fromEntries(propEntries);
-  props['name'] = appName;
+  props['name'] = getAppName(name);
   return props;
 };
 
-const getAppStreams = (
-  appToRender: AppToRender,
-  { renderOptions: { renderApplication } }: RenderArgs,
-) => {
-  const { appName } = appToRender;
-  const contentStream = new MergeStream(`[${appName}-contentStream]`);
-  const assetStream = new MergeStream(`[${appName}-assetStream]`);
-  const propsStream = new MergeStream(`[${appName}-propsStream]`);
-  try {
-    const { assets = '', content, props } = renderApplication(appToRender);
-    assetStream.add(assets, `[${appName}-assets]`);
-    contentStream.add(content, `[${appName}-content]`);
-    if (props) {
-      const propsScriptPromise = Promise.resolve(props).then(p =>
-        p ? dataScript(p, appPropsScriptId(appName)) : '',
-      );
-      propsStream.add(propsScriptPromise, `[${appName}-props]`);
+type AppStreamInput =
+  | {
+      isNew: true;
+      assets?: StreamInput;
+      content: StreamInput;
+      props?: StreamInput;
     }
-  } catch (error) {
-    logError(appName, error);
+  | { isNew: false; content: StreamInput };
+
+const getAppStreamInput = (
+  appToRender: AppToRender,
+  { appContents, renderOptions: { renderApplication } }: RenderArgs,
+): AppStreamInput => {
+  const { appName } = appToRender;
+  const content = appContents[appName];
+  if (content) {
+    return { isNew: false, content: MergeStream.clone(content) };
   }
 
-  return { assetStream, contentStream, propsStream };
+  try {
+    const { assets, content, props } = renderApplication(appToRender);
+    appContents[appName] = content;
+    return {
+      isNew: true,
+      assets,
+      content: MergeStream.clone(content),
+      props:
+        props &&
+        Promise.resolve(props).then(p =>
+          p ? dataScript(p, appPropsScriptId(appName)) : '',
+        ),
+    };
+  } catch (error) {
+    logError(appName, error);
+    return { isNew: true, content: '' };
+  }
 };
 
 export const renderApplication = (
@@ -59,24 +73,26 @@ export const renderApplication = (
 ) => {
   const {
     assetsStream,
-    applicationPropPromises,
+    appPropsPromises,
     bodyStream,
     dataStream,
     headerPromises,
     renderOptions: { retrieveApplicationHeaders },
   } = args;
-  const { name: appName } = node;
-  const propsPromise = getPropsPromise(node, args);
-  applicationPropPromises[appName] = propsPromise;
-  const appToRender = { appName, propsPromise };
-  headerPromises[appName] = retrieveApplicationHeaders(appToRender);
-  const { assetStream, contentStream, propsStream } = getAppStreams(
-    appToRender,
+  const { name } = node;
+  const appName = getAppName(name);
+  const propsPromise = (appPropsPromises[appName] ??= getPropsPromise(
+    node,
     args,
-  );
-  assetsStream.add(assetStream);
-  dataStream.add(propsStream);
-  bodyStream.add(`<div id="${applicationElementId(appName)}">`);
-  bodyStream.add(contentStream);
+  ));
+  const appToRender = { appName, propsPromise };
+  headerPromises[appName] ??= retrieveApplicationHeaders(appToRender);
+  const appStreamInput = getAppStreamInput(appToRender, args);
+  bodyStream.add(`<div id="${applicationElementId(name)}">`);
+  bodyStream.add(appStreamInput.content);
   bodyStream.add(`</div>`);
+  if (appStreamInput.isNew) {
+    appStreamInput.assets && assetsStream.add(appStreamInput.assets);
+    appStreamInput.props && dataStream.add(appStreamInput.props);
+  }
 };

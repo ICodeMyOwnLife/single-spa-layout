@@ -33,6 +33,17 @@ export class MergeStream extends Readable {
     process.nextTick(() => this.next());
   }
 
+  static clone(input: StreamInput): StreamInput {
+    if (isPromise(input)) return MergeStream.clonePromise(input);
+    if (typeof input === 'object' && 'pipe' in input)
+      return input.pipe(new PassThrough());
+    return input;
+  }
+
+  private static async clonePromise(input: PromiseLike<StreamValue>) {
+    return MergeStream.clone(await Promise.resolve(input));
+  }
+
   override _read(_size: number): void {}
 
   override push(chunk: unknown, _encoding?: BufferEncoding): boolean {

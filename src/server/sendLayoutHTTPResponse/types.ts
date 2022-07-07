@@ -31,12 +31,16 @@ export interface RenderOptions {
   urlPath: string;
 }
 
+type AppName = string;
+type PropName = string;
+
 export interface RenderArgs {
-  applicationPropPromises: Record<string, Promise<Record<string, unknown>>>;
+  appPropsPromises: Record<AppName, Promise<Record<string, unknown>>>;
+  appContents: Record<AppName, StreamInput>;
   assetsStream: MergeStream;
   dataStream: MergeStream;
   bodyStream: MergeStream;
-  headerPromises: Record<string, Promise<Record<string, string>>>;
-  propPromises: Record<string, Promise<unknown>>;
+  headerPromises: Record<AppName, Promise<Record<string, string>>>;
+  propPromises: Record<PropName, Promise<unknown>>;
   renderOptions: RenderOptions;
 }

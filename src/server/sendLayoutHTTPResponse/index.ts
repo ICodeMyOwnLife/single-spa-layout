@@ -23,7 +23,7 @@ const isRedirected = ({
 };
 
 const getHeaders = async ({
-  applicationPropPromises,
+  appPropsPromises,
   headerPromises,
   renderOptions: { assembleFinalHeaders },
 }: RenderArgs) => {
@@ -32,7 +32,7 @@ const getHeaders = async ({
       async ([appName, headerPromise]) => {
         const [appHeaders, appProps] = await Promise.all([
           headerPromise,
-          applicationPropPromises[appName]!,
+          appPropsPromises[appName]!,
         ]);
         return { appHeaders, appProps };
       },
@@ -47,7 +47,8 @@ export const sendLayoutHTTPResponse = async (renderOptions: RenderOptions) => {
     serverLayout: { parsedDocument },
   } = renderOptions;
   const args: RenderArgs = {
-    applicationPropPromises: {},
+    appPropsPromises: {},
+    appContents: {},
     assetsStream: new MergeStream('assetsStream'),
     bodyStream: new MergeStream('bodyStream'),
     dataStream: new MergeStream('dataStream'),
