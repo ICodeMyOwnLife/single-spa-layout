@@ -11,7 +11,12 @@ export {
   type InputText,
   type ResolvedRoutesConfig,
 } from '../isomorphic/index.js';
-export { getAppProps, getLayoutConfig } from '../utils/index.js';
+export {
+  applicationElementId,
+  getAppName,
+  getAppProps,
+  getLayoutConfig,
+} from '../utils/index.js';
 export {
   constructApplications,
   type ApplicationOptions,

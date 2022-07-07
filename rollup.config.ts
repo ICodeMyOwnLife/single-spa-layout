@@ -1,5 +1,5 @@
 import { stripCode } from '@codecb/rollup-plugin-strip-code';
-import babel, { RollupBabelInputPluginOptions } from '@rollup/plugin-babel';
+import { babel } from '@rollup/plugin-babel';
 import replace from '@rollup/plugin-replace';
 import { resolve } from 'node:path';
 import { defineConfig, ModuleFormat } from 'rollup';
@@ -32,11 +32,6 @@ const createConfig = ({
       ? 'cjs'
       : 'js';
   const outputFile = resolve(rootDir, `dist/${format}/${target}.${extension}`);
-  const babelOpts: RollupBabelInputPluginOptions =
-    target === 'server'
-      ? { babelHelpers: 'bundled', envName: 'server' }
-      : { babelHelpers: 'bundled' };
-
   return defineConfig({
     input: inputFile,
     output: {
@@ -73,7 +68,10 @@ const createConfig = ({
           ),
         },
       }),
-      babel(babelOpts),
+      babel({
+        babelHelpers: 'bundled',
+        presets: [['@codecb/babel', { target }]],
+      }),
       !isDev && terser({ compress: { passes: 2 } }),
     ],
     onwarn(warning, defaultHandler) {
