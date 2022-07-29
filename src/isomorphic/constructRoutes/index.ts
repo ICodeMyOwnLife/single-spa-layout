@@ -1,3 +1,4 @@
+import { Optional } from '../../types/common.js';
 import {
   getDataFromScript,
   inBrowser,

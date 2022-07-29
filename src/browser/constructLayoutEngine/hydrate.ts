@@ -1,4 +1,5 @@
 import { ResolvedChild, sslResolvedNode } from '../../isomorphic/index.js';
+import { Nullable, Optional } from '../../types/common.js';
 import { createNodeFromRouteChild } from './utils.js';
 
 const equalAttributes = (first: Node, second: Node) => {

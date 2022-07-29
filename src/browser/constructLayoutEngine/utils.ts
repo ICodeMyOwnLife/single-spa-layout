@@ -6,6 +6,7 @@ import {
   RouteMode,
   sslResolvedNode,
 } from '../../isomorphic/index.js';
+import { Optional } from '../../types/common.js';
 
 export const getAppsToUnmount = (newUrl: string) => {
   const activeApps = checkActivityFunctions(

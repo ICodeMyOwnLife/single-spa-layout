@@ -1,4 +1,5 @@
 import { ParcelConfig } from 'single-spa';
+import { Optional } from '../../types/common.js';
 import { inBrowser } from '../../utils/index.js';
 import type {
   HTMLLayoutData,

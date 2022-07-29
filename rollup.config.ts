@@ -40,10 +40,12 @@ const createConfig = ({
       format,
       sourcemap: isDev,
     },
-    external: ['merge2', /^node:*/, /^parse5.*/, 'single-spa'],
+    external: [/^node:*/, /^parse5.*/, 'single-spa'],
     plugins: [
       !isDev &&
-        stripCode({ endComment: '#devOnlyEnd', startComment: '#devOnlyStart' }),
+        stripCode({
+          comments: [{ end: '#devOnlyEnd', start: '#devOnlyStart' }],
+        }),
       ts({
         hook: {
           // There may be a bug in `rollup-plugin-ts` that make it unable to load `.d.mts` files.

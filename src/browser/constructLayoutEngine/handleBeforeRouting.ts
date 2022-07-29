@@ -1,5 +1,6 @@
 import { navigateToUrl, Parcel, SingleSpaCustomEventDetail } from 'single-spa';
 import { ResolvedRoutesConfig } from '../../isomorphic/index.js';
+import { Optional } from '../../types/common.js';
 import { SingleSpaEventListener } from './types.js';
 import { getAppsToUnmount, getPath } from './utils.js';
 

@@ -1,5 +1,6 @@
 import { html } from 'parse5';
 import type { ParcelConfig } from 'single-spa';
+import { Nullable } from '../../types/common.js';
 import type { nodeNames } from '../utils/index.js';
 import {
   SslApplication,

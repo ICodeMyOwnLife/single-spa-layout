@@ -5,6 +5,7 @@ import {
   ResolvedRoute,
   sslResolvedNode,
 } from '../../isomorphic/index.js';
+import { Optional } from '../../types/common.js';
 import { applicationElementId } from '../../utils/index.js';
 import { createNodeFromRouteChild, insertNode } from './utils.js';
 

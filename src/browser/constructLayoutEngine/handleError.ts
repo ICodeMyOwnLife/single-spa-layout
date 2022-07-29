@@ -5,6 +5,7 @@ import {
   ResolvedRoutesConfig,
   sslResolvedNode,
 } from '../../isomorphic/index.js';
+import { Optional } from '../../types/common.js';
 import { applicationElementId, htmlToParcelConfig } from '../../utils/index.js';
 
 const findIfApplication = (applicationName: string, child: ResolvedChild) =>
@@ -67,8 +68,4 @@ export const handleError =
         parcelProps,
       );
     }
-    if (process.env.BABEL_ENV !== 'test')
-      setTimeout(() => {
-        throw err;
-      });
   };
